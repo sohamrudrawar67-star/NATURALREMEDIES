@@ -17,7 +17,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     <div className="container mx-auto px-4 py-16">
       <div className="mb-12">
         <h1 className="text-4xl font-bold text-primary mb-4">
-          {query ? `Search Results for "${searchParams.q}"` : 'All Products'}
+          {query ? `Search Results for "${params.q}"` : 'All Products'}
         </h1>
         <p className="text-lg text-foreground/80 max-w-2xl">
           {query 
