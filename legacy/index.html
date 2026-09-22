@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Natural Remedies | Pure Organic Remedies</title>
+    <meta name="description" content="Discover pure, organic, and natural remedies including artisanal soaps, herbal shampoos, and ayurvedic hair oils.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Natural Remedies</div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#shop">Shop</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <div class="nav-icons">
+            <div class="nav-icon" aria-label="Search">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <div class="nav-icon" aria-label="Profile">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+            <div class="nav-icon cart-trigger" aria-label="Cart">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                <span class="cart-count">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <header id="home" class="hero">
+        <div class="hero-content">
+            <h1>Embrace the Power of Nature</h1>
+            <p>Elevate your self-care routine with our 100% organic, handcrafted remedies designed to nourish your body and soul.</p>
+            <a href="#shop" class="btn-primary">Explore Products</a>
+        </div>
+        <div class="hero-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+        </div>
+    </header>
+
+    <section id="shop" class="shop-section">
+        <div class="section-header">
+            <h2>Our Bestsellers</h2>
+            <p>Curated specifically for your natural wellness journey.</p>
+        </div>
+        
+        <div class="product-grid">
+            <!-- Product 1 -->
+            <div class="product-card">
+                <div class="product-img-wrapper">
+                    <img src="assets/soap.jpg" alt="Botanical Harvest Natural Soap" loading="lazy">
+                    <div class="product-badge">Organic</div>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">Botanical Harvest Soap</h3>
+                    <p class="product-desc">Lavender & Eucalyptus infused artisan soap.</p>
+                    <div class="product-bottom">
+                        <span class="product-price">$12.00</span>
+                        <button class="add-to-cart" data-id="1">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="product-card">
+                <div class="product-img-wrapper">
+                    <img src="assets/shampoo.jpg" alt="Herbal Chamomile Shampoo" loading="lazy">
+                    <div class="product-badge bestseller">Bestseller</div>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">Herbal Chamomile Shampoo</h3>
+                    <p class="product-desc">Aloe vera and chamomile for soft, nourished hair.</p>
+                    <div class="product-bottom">
+                        <span class="product-price">$24.00</span>
+                        <button class="add-to-cart" data-id="2">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product 3 -->
+            <div class="product-card">
+                <div class="product-img-wrapper">
+                    <img src="assets/oil.jpg" alt="Ayurvedic Hair & Scalp Oil" loading="lazy">
+                    <div class="product-badge">New</div>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">Golden Shine Ayurvedic Oil</h3>
+                    <p class="product-desc">Amla and Rosemary infusion for healthy hair growth.</p>
+                    <div class="product-bottom">
+                        <span class="product-price">$38.00</span>
+                        <button class="add-to-cart" data-id="3">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="cart-overlay"></div>
+    <div class="cart-sidebar">
+        <div class="cart-header">
+            <h2>Your Cart</h2>
+            <button class="close-cart" aria-label="Close cart">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="cart-items">
+            <div class="empty-cart-message">Your cart is currently empty.</div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-summary">
+                <span>Subtotal</span>
+                <span class="cart-total">$0.00</span>
+            </div>
+            <button class="btn-primary checkout-btn">Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="logo">Natural Remedies</div>
+            <p>&copy; 2026 Natural Remedies. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="main.js?v=2"></script>
+</body>
+</html>
