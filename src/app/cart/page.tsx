@@ -5,9 +5,37 @@ import { Trash2, Plus, Minus } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 
+import { useUserStore } from '@/store/useUserStore'
+
 export default function CartPage() {
   const [mounted, setMounted] = useState(false)
   const { items, removeItem, updateQuantity } = useCartStore()
+  const { user, openLoginModal } = useUserStore()
+
+  const handleCheckout = () => {
+    if (!user) {
+      openLoginModal()
+      return
+    }
+
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    
+    let message = `*New Order from ${user.name}*\n`
+    message += `Phone: ${user.phone}\n`
+    message += `Address: ${user.address}\n\n`
+    message += `*Items:*\n`
+    
+    items.forEach(item => {
+      message += `- ${item.quantity}x ${item.name} (₹${item.price * item.quantity})\n`
+    })
+    
+    message += `\n*Total: ₹${subtotal}*`
+    
+    const encodedMessage = encodeURIComponent(message)
+    const storeOwnerPhone = '917721008644' // Using the number from your screenshot as default
+    
+    window.open(`https://wa.me/${storeOwnerPhone}?text=${encodedMessage}`, '_blank')
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -110,8 +138,11 @@ export default function CartPage() {
               </div>
             </div>
 
-            <button className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-bold hover:bg-primary/90 transition-colors">
-              Proceed to Checkout
+            <button 
+              onClick={handleCheckout}
+              className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-bold hover:bg-primary/90 transition-colors"
+            >
+              Proceed to WhatsApp Checkout
             </button>
             <p className="text-xs text-center text-foreground/60 mt-4">
               Shipping and taxes calculated at checkout.

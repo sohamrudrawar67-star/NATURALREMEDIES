@@ -12,6 +12,11 @@ interface UserStore {
   login: (profile: UserProfile) => void
   logout: () => void
   updateProfile: (profile: UserProfile) => void
+  
+  // UI State
+  isLoginModalOpen: boolean
+  openLoginModal: () => void
+  closeLoginModal: () => void
 }
 
 export const useUserStore = create<UserStore>()(
@@ -21,9 +26,14 @@ export const useUserStore = create<UserStore>()(
       login: (profile) => set({ user: profile }),
       logout: () => set({ user: null }),
       updateProfile: (profile) => set({ user: profile }),
+      
+      isLoginModalOpen: false,
+      openLoginModal: () => set({ isLoginModalOpen: true }),
+      closeLoginModal: () => set({ isLoginModalOpen: false }),
     }),
     {
       name: 'user-storage',
+      partialize: (state) => ({ user: state.user }),
     }
   )
 )

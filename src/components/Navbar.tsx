@@ -10,13 +10,12 @@ import { useRouter } from 'next/navigation'
 
 export function Navbar() {
   const [mounted, setMounted] = useState(false)
-  const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
   
   const cartItems = useCartStore((state) => state.items)
-  const { user } = useUserStore()
+  const { user, isLoginModalOpen, openLoginModal, closeLoginModal } = useUserStore()
   
   // To prevent hydration errors with Zustand persist
   useEffect(() => {
@@ -100,7 +99,7 @@ export function Navbar() {
               </Link>
             ) : (
               <button 
-                onClick={() => setIsLoginOpen(true)}
+                onClick={openLoginModal}
                 className="text-foreground hover:text-primary transition-colors hidden sm:flex items-center gap-2 font-medium"
               >
                 <User className="w-5 h-5" />
@@ -120,7 +119,7 @@ export function Navbar() {
         </div>
       </nav>
 
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+      <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
     </>
   )
 }
