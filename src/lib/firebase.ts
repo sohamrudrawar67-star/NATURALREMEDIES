@@ -3,12 +3,12 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyC2uPhRygksWDv6YKrBwALxrQMYUoVQwBk",
+  authDomain: "naturalremedies-772100.firebaseapp.com",
+  projectId: "naturalremedies-772100",
+  storageBucket: "naturalremedies-772100.firebasestorage.app",
+  messagingSenderId: "503056875720",
+  appId: "1:503056875720:web:72e85b00e1ac5ca8fc25fd",
 };
 
 // Initialize Firebase only if it hasn't been initialized yet (prevents errors in Next.js hot reload)
