@@ -7,6 +7,7 @@ export interface Product {
   price: number
   description?: string
   image?: string
+  isOutOfStock?: boolean
 }
 
 export interface CartItem extends Product {

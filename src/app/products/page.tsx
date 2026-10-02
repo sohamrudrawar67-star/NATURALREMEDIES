@@ -1,17 +1,33 @@
-import { ProductCard } from '@/components/ProductCard'
-import { MOCK_PRODUCTS } from '@/lib/mock-data'
-import Link from 'next/link'
+'use client'
 
-export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const params = await searchParams
+import { ProductCard } from '@/components/ProductCard'
+import { getProducts } from '@/lib/products'
+import { Product } from '@/store/useCartStore'
+import Link from 'next/link'
+import { useEffect, useState, use } from 'react'
+
+export default function ProductsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const params = use(searchParams)
   const query = params.q?.toLowerCase()
   
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const fetched = await getProducts()
+      setProducts(fetched)
+      setLoading(false)
+    }
+    fetchProducts()
+  }, [])
+  
   const filteredProducts = query 
-    ? MOCK_PRODUCTS.filter(p => 
+    ? products.filter(p => 
         p.name.toLowerCase().includes(query) || 
         p.description?.toLowerCase().includes(query)
       )
-    : MOCK_PRODUCTS
+    : products
 
   return (
     <div className="container mx-auto px-4 py-16">
@@ -31,7 +47,9 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
         )}
       </div>
 
-      {filteredProducts.length > 0 ? (
+      {loading ? (
+        <div className="text-center py-16">Loading products...</div>
+      ) : filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />

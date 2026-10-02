@@ -31,6 +31,21 @@ export function CartQuantityButton({ product, className, large = false }: CartQu
     )
   }
 
+  if (product.isOutOfStock) {
+    return (
+      <button
+        disabled
+        className={cn(
+          "bg-gray-300 text-gray-500 rounded-full font-medium cursor-not-allowed",
+          large ? "px-8 py-4 font-bold text-lg" : "px-4 py-2 text-sm",
+          className
+        )}
+      >
+        Out of Stock
+      </button>
+    )
+  }
+
   const cartItem = items.find((item) => item.id === product.id)
   const quantity = cartItem?.quantity || 0
 

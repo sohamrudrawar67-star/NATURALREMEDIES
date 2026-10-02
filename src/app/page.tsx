@@ -1,9 +1,23 @@
+'use client'
+
 import { ProductCard } from '@/components/ProductCard'
-import { MOCK_PRODUCTS } from '@/lib/mock-data'
 import { HeroGreeting } from '@/components/HeroGreeting'
+import { getProducts } from '@/lib/products'
+import { Product } from '@/store/useCartStore'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 export default function Home() {
+  const [products, setProducts] = useState<Product[]>([])
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const fetched = await getProducts()
+      setProducts(fetched.slice(0, 4)) // Show up to 4 featured products
+    }
+    fetchProducts()
+  }, [])
+
   return (
     <div className="flex flex-col flex-1">
       {/* Hero Section */}
@@ -44,7 +58,7 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {MOCK_PRODUCTS.map((product) => (
+            {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

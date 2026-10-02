@@ -1,13 +1,31 @@
-import { MOCK_PRODUCTS } from '@/lib/mock-data'
+'use client'
+
+import { getProductById } from '@/lib/products'
 import { notFound } from 'next/navigation'
 import { CartQuantityButton } from '@/components/CartQuantityButton'
+import { Product } from '@/store/useCartStore'
+import { use, useEffect, useState } from 'react'
 
-export default async function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params
-  const product = MOCK_PRODUCTS.find((p) => p.id === resolvedParams.id)
+export default function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params)
+  const [product, setProduct] = useState<Product | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const fetched = await getProductById(resolvedParams.id)
+      setProduct(fetched)
+      setLoading(false)
+    }
+    fetchProduct()
+  }, [resolvedParams.id])
   
+  if (loading) {
+    return <div className="container mx-auto px-4 py-16 text-center">Loading product...</div>
+  }
+
   if (!product) {
-    notFound()
+    return <div className="container mx-auto px-4 py-16 text-center">Product not found.</div>
   }
 
   return (
@@ -18,6 +36,11 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
               <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-muted-foreground">No image</div>
+            )}
+            {product.isOutOfStock && (
+              <div className="absolute top-4 right-4 bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg z-10">
+                Out of Stock
+              </div>
             )}
         </div>
         

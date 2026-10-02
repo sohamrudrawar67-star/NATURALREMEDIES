@@ -33,16 +33,30 @@ export function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
       const cleanPhone = phone.replace(/\D/g, '')
       const userDocRef = doc(db, 'users', cleanPhone)
       
+      let isAdmin = false
+      const cleanName = name.toLowerCase().trim().replace(/\s+/g, ' ')
+      
+      if (cleanName === 'soham rudrawar' && cleanPhone.includes('7721008644')) {
+        isAdmin = true
+      } else {
+        const adminDocRef = doc(db, 'admins', cleanPhone)
+        const adminSnap = await getDoc(adminDocRef)
+        if (adminSnap.exists()) {
+          isAdmin = true
+        }
+      }
+      
       // Save or update user in Firestore
       await setDoc(userDocRef, {
         name,
         phone,
         address,
+        isAdmin,
         lastLogin: new Date().toISOString()
       }, { merge: true }) // merge: true ensures we don't overwrite other fields if they exist
 
       // Log them in locally
-      login({ name, phone, address })
+      login({ name, phone, address, isAdmin })
       onClose()
     } catch (err: any) {
       console.error('Error saving user:', err)

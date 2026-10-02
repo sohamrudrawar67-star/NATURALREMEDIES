@@ -20,21 +20,23 @@ export default function CartPage() {
 
     const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
     
-    let message = `*New Order from ${user.name}*\n`
-    message += `Phone: ${user.phone}\n`
-    message += `Address: ${user.address}\n\n`
-    message += `*Items:*\n`
+    let message = `*New Order Received!*\n\n`
+    message += `*Customer:* ${user.name}\n`
+    message += `*Phone:* ${user.phone}\n`
+    message += `*Delivery Address:*\n${user.address}\n\n`
+    message += `*Order Details:*\n`
     
     items.forEach(item => {
       message += `- ${item.quantity}x ${item.name} (₹${item.price * item.quantity})\n`
     })
     
-    message += `\n*Total: ₹${subtotal}*`
+    message += `\n*Total Amount:* ₹${subtotal}`
     
     const encodedMessage = encodeURIComponent(message)
-    const storeOwnerPhone = '917721008644' // Using the number from your screenshot as default
+    const storeOwnerPhone = '917721008644'
     
-    window.open(`https://wa.me/${storeOwnerPhone}?text=${encodedMessage}`, '_blank')
+    // Using location.href instead of window.open to prevent popup blockers on mobile devices
+    window.location.href = `https://wa.me/${storeOwnerPhone}?text=${encodedMessage}`
   }
 
   useEffect(() => {
@@ -97,7 +99,8 @@ export default function CartPage() {
                     <span className="w-8 text-center font-medium">{item.quantity}</span>
                     <button 
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="p-2 text-foreground/70 hover:text-foreground transition-colors"
+                      disabled={item.isOutOfStock}
+                      className="p-2 text-foreground/70 hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Plus className="w-4 h-4" />
                     </button>

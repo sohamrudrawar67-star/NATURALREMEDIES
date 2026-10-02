@@ -16,8 +16,13 @@ export function ProductCard({ product, className }: { product: Product; classNam
         ) : (
           <span className="text-muted-foreground">No image</span>
         )}
+        {product.isOutOfStock && (
+          <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md z-10">
+            Out of Stock
+          </div>
+        )}
       </div>
-      <div className="p-5 flex flex-col gap-3">
+      <div className={`p-5 flex flex-col gap-3 ${product.isOutOfStock ? 'opacity-70' : ''}`}>
         <h3 className="font-semibold text-lg text-primary">{product.name}</h3>
         <p className="text-sm text-foreground/80 line-clamp-2">{product.description}</p>
         <div className="mt-auto flex items-center justify-between pt-2">
