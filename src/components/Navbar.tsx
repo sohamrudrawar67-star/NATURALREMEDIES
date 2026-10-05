@@ -64,7 +64,8 @@ export function Navbar() {
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-            <Link href="/" className="font-bold text-xl text-primary tracking-tight">
+            <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary tracking-tight">
+              <img src="/logo.png" alt="Natural Remedies Logo" className="w-10 h-10 object-contain" />
               Natural Remedies
             </Link>
           </div>

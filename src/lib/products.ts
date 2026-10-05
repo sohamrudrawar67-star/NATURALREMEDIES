@@ -39,6 +39,16 @@ export const addProduct = async (product: Omit<Product, 'id'>) => {
   }
 }
 
+export const updateProduct = async (id: string, updates: Partial<Product>) => {
+  try {
+    const docRef = doc(db, 'products', id)
+    await import('firebase/firestore').then(({ setDoc }) => setDoc(docRef, updates, { merge: true }))
+  } catch (error) {
+    console.error('Error updating product:', error)
+    throw error
+  }
+}
+
 export const removeProduct = async (id: string) => {
   try {
     await deleteDoc(doc(db, 'products', id))
