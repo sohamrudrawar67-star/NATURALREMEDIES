@@ -17,6 +17,8 @@ export function Navbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [isSearching, setIsSearching] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [cartAnimate, setCartAnimate] = useState(false)
   const router = useRouter()
   
   const cartItems = useCartStore((state) => state.items)
@@ -25,9 +27,23 @@ export function Navbar() {
   // To prevent hydration errors with Zustand persist
   useEffect(() => {
     setMounted(true)
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const cartItemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0)
+
+  // Animate cart when items change
+  useEffect(() => {
+    if (cartItemCount > 0) {
+      setCartAnimate(true)
+      const timer = setTimeout(() => setCartAnimate(false), 300)
+      return () => clearTimeout(timer)
+    }
+  }, [cartItemCount])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,8 +70,8 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full bg-white border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between relative">
+      <nav className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-border/50 py-1' : 'bg-white py-2'}`}>
+        <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between relative">
           {/* Mobile Menu & Logo */}
           <div className="flex items-center gap-4">
             <button 
@@ -81,7 +97,7 @@ export function Navbar() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search products..."
-                    className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground px-2 py-1"
+                    className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground px-2 py-2 text-lg focus:ring-0"
                     autoFocus
                   />
                   <button 
@@ -137,18 +153,22 @@ export function Navbar() {
           ) : (
             /* Desktop Navigation */
             <div className="hidden lg:flex items-center gap-8 font-medium">
-              <Link href="/" className="text-foreground hover:text-primary transition-colors">
+              <Link href="/" className="relative text-foreground/80 hover:text-primary transition-colors group">
                 Home
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
               </Link>
-              <Link href="/products" className="text-foreground hover:text-primary transition-colors">
+              <Link href="/products" className="relative text-foreground/80 hover:text-primary transition-colors group">
                 Products
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
               </Link>
-              <Link href="/about" className="text-foreground hover:text-primary transition-colors">
+              <Link href="/about" className="relative text-foreground/80 hover:text-primary transition-colors group">
                 About Us
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
               </Link>
               {mounted && user?.isAdmin && (
-                <Link href="/admin" className="text-red-500 hover:text-red-600 transition-colors">
+                <Link href="/admin" className="relative text-red-500 hover:text-red-600 transition-colors group">
                   Admin Dashboard
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-500 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
               )}
             </div>
@@ -177,10 +197,10 @@ export function Navbar() {
               </button>
             )}
 
-            <Link href="/cart" className="relative text-foreground hover:text-primary transition-colors flex items-center">
-              <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+            <Link href="/cart" className="relative text-foreground hover:text-primary transition-transform hover:scale-105 flex items-center p-1">
+              <ShoppingCart className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform ${cartAnimate ? 'scale-125 text-primary' : ''}`} />
               {mounted && cartItemCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center">
+                <span className={`absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center transition-transform ${cartAnimate ? 'scale-110' : ''}`}>
                   {cartItemCount}
                 </span>
               )}
