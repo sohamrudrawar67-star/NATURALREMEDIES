@@ -41,16 +41,16 @@ export default function Home() {
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl font-medium leading-relaxed mt-2">
             Discover our range of authentic, organic, and affordable herbal remedies crafted with pure ingredients for a healthier lifestyle.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-8">
             <Link 
               href="/products" 
-              className="bg-primary text-primary-foreground px-8 py-4 rounded-xl font-bold hover:bg-primary/90 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 w-full sm:w-auto text-lg"
+              className="bg-primary text-primary-foreground px-6 sm:px-8 py-3 sm:py-3.5 rounded-full font-medium sm:font-semibold hover:bg-primary/90 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300 text-base sm:text-lg shadow-sm"
             >
               Explore Products
             </Link>
             <Link 
               href="/about" 
-              className="bg-white text-foreground px-8 py-4 rounded-xl font-bold hover:bg-gray-50 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 shadow-sm border border-border w-full sm:w-auto text-lg"
+              className="bg-white text-foreground px-6 sm:px-8 py-3 sm:py-3.5 rounded-full font-medium sm:font-semibold hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300 shadow-sm border border-border text-base sm:text-lg"
             >
               Learn More
             </Link>
