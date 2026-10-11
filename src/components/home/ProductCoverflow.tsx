@@ -26,87 +26,7 @@ const EASE_OUT = [0.23, 1, 0.32, 1] as const
  */
 export function ProductCoverflow({ products }: { products: Product[] }) {
   if (products.length === 0) return null
-  const { w, ready } = useViewport()
-
-  if (ready && w < 768) {
-    return <MobileShelf products={products} />
-  }
-
   return <ProductCoverflowInner products={products} />
-}
-
-function MobileShelf({ products }: { products: Product[] }) {
-  const [active, setActive] = useState(0)
-
-  return (
-    <section className="relative py-12 px-4 max-w-[1200px] mx-auto w-full" aria-label="Products">
-      {/* Header */}
-      <div className="flex items-end justify-between gap-4 mb-5 px-1">
-        <div>
-          <h2 className="text-[clamp(32px,8vw,46px)] font-semibold leading-[1] tracking-[-0.04em]">
-            The <em className="font-serif font-normal italic">shelf.</em>
-          </h2>
-          <p className="mt-1.5 text-[14px] text-muted">Swipe cards to explore pure homegrown honey.</p>
-        </div>
-
-        {/* Indicator dots */}
-        <div className="flex items-center gap-1.5 pb-2">
-          {products.map((p, i) => (
-            <button
-              key={p.id}
-              onClick={() => setActive(i)}
-              aria-label={p.name}
-              className="p-1"
-            >
-              <span
-                className="block h-1.5 rounded-full bg-foreground transition-all duration-300"
-                style={{ width: i === active ? 20 : 6, opacity: i === active ? 0.9 : 0.25 }}
-              />
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Touch-swipeable horizontal cards with CSS scroll snap */}
-      <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-4 pt-1 -mx-4 px-4">
-        {products.map((p, i) => (
-          <div
-            key={p.id}
-            onClick={() => setActive(i)}
-            className="snap-center shrink-0 w-[82vw] max-w-[320px] rounded-[24px] bg-surface-2 ring-1 ring-black/5 dark:ring-white/10 shadow-lg overflow-hidden flex flex-col justify-between"
-          >
-            <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-3">
-              {p.image && (
-                <Image src={p.image} alt={p.name} fill sizes="320px" className="object-cover" />
-              )}
-              <span aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_60%,rgba(0,0,0,0.35)_100%)]" />
-              <div className="absolute bottom-3 left-3 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[13px] font-semibold text-white">
-                ₹{p.price}
-              </div>
-            </div>
-
-            <div className="p-4 flex flex-col flex-1 justify-between gap-3">
-              <div>
-                <h3 className="text-[17.5px] font-semibold tracking-[-0.02em]">{p.name}</h3>
-                {p.description && (
-                  <p className="mt-1 line-clamp-2 text-[13px] leading-[1.45] text-muted">
-                    {p.description}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between gap-2 pt-2 border-t border-line/60">
-                <Link href={productHref(p)} className="text-[13px] font-medium text-primary hover:underline">
-                  View details →
-                </Link>
-                <CartQuantityButton product={p} />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
 }
 
 function ProductCoverflowInner({ products }: { products: Product[] }) {
@@ -114,10 +34,15 @@ function ProductCoverflowInner({ products }: { products: Product[] }) {
   const reduceMotion = useReducedMotion()
   const count = products.length
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
-  const smooth = useSpring(scrollYProgress, { stiffness: 220, damping: 38, mass: 0.4, restDelta: 0.0005 })
-  const coarse = useCoarsePointer()
+  const { w, h, ready } = useViewport()
+  const mobile = ready ? w < 768 : false
+
+  // Silky-smooth spring interpolation for 60/120fps motion on touch and wheel
+  const smooth = useSpring(scrollYProgress, { stiffness: 260, damping: 36, mass: 0.16, restDelta: 0.0005 })
+  const progress = reduceMotion ? scrollYProgress : smooth
+
   // Hold the first and last product briefly at the ends of the pin
-  const position = useTransform(reduceMotion || coarse ? scrollYProgress : smooth, [0.08, 0.92], [0, Math.max(count - 1, 0)], {
+  const position = useTransform(progress, [0.06, 0.94], [0, Math.max(count - 1, 0)], {
     clamp: true,
   })
 
@@ -127,9 +52,8 @@ function ProductCoverflowInner({ products }: { products: Product[] }) {
     if (next !== active) setActive(next)
   })
 
-  const { w, h } = useViewport()
   // Fit width, and leave room above/below for the title and the product details on short phones
-  const byWidth = w < 768 ? Math.min(w * 0.64, 300) : Math.min(Math.max(w * 0.26, 280), 400)
+  const byWidth = mobile ? Math.min(w * 0.62, 280) : Math.min(Math.max(w * 0.26, 280), 400)
   const cardW = Math.min(byWidth, (h * 0.42) / 1.2)
 
   const goTo = (i: number) => {
@@ -137,14 +61,31 @@ function ProductCoverflowInner({ products }: { products: Product[] }) {
     if (!el) return
     const top = el.getBoundingClientRect().top + window.scrollY
     const scrollable = el.offsetHeight - window.innerHeight
-    const p = count > 1 ? 0.08 + (i / (count - 1)) * 0.84 : 0
+    const p = count > 1 ? 0.06 + (i / (count - 1)) * 0.88 : 0
     window.scrollTo({ top: top + scrollable * p, behavior: reduceMotion ? 'auto' : 'smooth' })
   }
 
   const current = products[Math.min(active, count - 1)]
 
   return (
-    <section ref={ref} className="relative" style={{ height: `${Math.max(count, 2) * 70 + 60}vh` }} aria-label="Products">
+    <section
+      ref={ref}
+      className="relative snap-start"
+      style={{ height: mobile ? `${Math.max(count, 2) * 55 + 35}vh` : `${Math.max(count, 2) * 70 + 60}vh` }}
+      aria-label="Products"
+    >
+      {/* Invisible snap stops on mobile so each swipe locks precisely to a product */}
+      {mobile && (
+        <div className="absolute inset-0 pointer-events-none">
+          {products.map((p, i) => (
+            <div
+              key={p.id}
+              className="absolute h-px w-full snap-start"
+              style={{ top: `${count > 1 ? (i / (count - 1)) * 88 : 0}%` }}
+            />
+          ))}
+        </div>
+      )}
       <div className="sticky top-0 flex h-[100svh] flex-col overflow-hidden">
         <div className="mx-auto w-full max-w-[1200px] px-6 pt-[max(13vh,5.5rem)] sm:pt-[15vh]">
           <div className="flex items-end justify-between gap-6">
