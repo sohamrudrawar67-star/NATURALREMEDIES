@@ -58,40 +58,39 @@ function readProductFields(form: FormData) {
   const name = String(form.get('name') ?? '').trim()
   const description = String(form.get('description') ?? '').trim()
   const price = Number(form.get('price'))
+  const isOutOfStock = form.has('isOutOfStock') ? form.get('isOutOfStock') === 'true' : false
   if (!name || name.length > 120) throw new UserError('Enter a product name (up to 120 characters).')
   if (description.length > 2000) throw new UserError('The description is too long.')
   if (!Number.isFinite(price) || price <= 0 || price > 1_000_000) throw new UserError('Enter a valid price.')
-  return { name, description, price: Math.round(price) }
+  return { name, description, price: Math.round(price), isOutOfStock }
 }
 
 export async function saveProduct(form: FormData): Promise<Result> {
   return guarded(async () => {
     const id = form.get('id') ? String(form.get('id')) : null
     if (id && !ID_RE.test(id)) throw new UserError('Unknown product.')
-    const { name, description, price } = readProductFields(form)
+    const { name, description, price, isOutOfStock } = readProductFields(form)
     const upload = form.get('image')
     const image = upload instanceof File ? await processImage(upload) : null
 
     if (id) {
       const { rowCount } = image
         ? await pool.query(
-            `update product set name=$2, description=$3, price=$4, image=$5, image_type='image/jpeg', updated_at=now() where id=$1`,
-            [id, name, description, price, image]
+            `update product set name=$2, description=$3, price=$4, is_out_of_stock=$5, image=$6, image_type='image/jpeg', updated_at=now() where id=$1`,
+            [id, name, description, price, isOutOfStock, image]
           )
-        : await pool.query(`update product set name=$2, description=$3, price=$4, updated_at=now() where id=$1`, [
-            id,
-            name,
-            description,
-            price,
-          ])
+        : await pool.query(
+            `update product set name=$2, description=$3, price=$4, is_out_of_stock=$5, updated_at=now() where id=$1`,
+            [id, name, description, price, isOutOfStock]
+          )
       if (!rowCount) throw new UserError('That product no longer exists.')
     } else {
       if (!image) throw new UserError('Add a photo.')
       await pool.query(
-        `insert into product (name, description, price, image, image_type, slug, sort_order)
-         values ($1, $2, $3, $4, 'image/jpeg', $5, (select coalesce(max(sort_order), 0) + 1 from product))`,
+        `insert into product (name, description, price, is_out_of_stock, image, image_type, slug, sort_order)
+         values ($1, $2, $3, $4, $5, 'image/jpeg', $6, (select coalesce(max(sort_order), 0) + 1 from product))`,
         // Readable URL from the name (kept stable afterwards, so links never break)
-        [name, description, price, image, await uniqueSlug(name)]
+        [name, description, price, isOutOfStock, image, await uniqueSlug(name)]
       )
     }
     return undefined
