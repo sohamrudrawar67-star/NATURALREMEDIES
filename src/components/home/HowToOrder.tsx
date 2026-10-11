@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Reveal } from '@/components/Reveal'
 import { Product } from '@/store/useCartStore'
 import { ShoppingBag, MapPin, Check } from 'lucide-react'
@@ -29,7 +30,9 @@ export function HowToOrder({ products }: { products: Product[] }) {
             <div className="mt-8 flex items-center gap-3">
               <div className="glass flex items-center gap-3 rounded-2xl py-2 pl-2 pr-4">
                 {a?.image ? (
-                  <img src={a.image} alt="" className="h-11 w-11 rounded-xl object-cover" />
+                  <span className="relative h-11 w-11 overflow-hidden rounded-xl">
+                    <Image src={a.image} alt="" fill sizes="44px" className="object-cover" />
+                  </span>
                 ) : (
                   <span className="skeleton h-11 w-11 rounded-xl" />
                 )}
@@ -90,7 +93,7 @@ export function HowToOrder({ products }: { products: Product[] }) {
                 <div className="glass rounded-[26px] p-4">
                   <div className="flex items-center gap-2.5 border-b border-line pb-3">
                     <span className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-black/5">
-                      <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
+                      <Image src="/logo.png" alt="" width={28} height={25} className="h-7 w-7 object-contain" />
                     </span>
                     <div className="leading-tight">
                       <div className="text-[13.5px] font-semibold">Natural Remedies</div>

@@ -30,6 +30,15 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Put <title>/description in the initial <head> for every visitor, not only Next's built-in
+  // bot list, so all search and AI crawlers (and link previews) see them immediately.
+  htmlLimitedBots: /.*/,
+  images: {
+    // Serve each device a right-sized modern format (AVIF/WebP) instead of the full JPEG
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    localPatterns: [{ pathname: "/api/products/**" }, { pathname: "/logo.png", search: "" }],
+  },
   experimental: {
     serverActions: {
       // Admin photo uploads straight from a phone camera (re-encoded to ~150KB on the server)

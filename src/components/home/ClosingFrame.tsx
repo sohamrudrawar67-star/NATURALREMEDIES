@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { WHATSAPP_URL } from '@/lib/site'
 import { useRef } from 'react'
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
@@ -58,7 +59,7 @@ export function ClosingFrame({ image }: { image?: string }) {
               style={{ transform: productTransform, opacity: productOpacity }}
               className="relative aspect-square w-[min(38vh,72vw)] overflow-hidden rounded-[30px] shadow-[0_50px_100px_-30px_rgba(0,0,0,0.8)] ring-1 ring-white/15"
             >
-              <img src={image} alt="" className="h-full w-full object-cover" />
+              <Image src={image} alt="" fill sizes="(max-width: 768px) 72vw, 38vh" className="object-cover" />
               <span aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,0.25)_0%,transparent_35%)]" />
             </motion.div>
           </div>

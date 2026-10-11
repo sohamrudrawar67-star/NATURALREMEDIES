@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -212,6 +213,7 @@ export function Dashboard({ me }: { me: AdminUser }) {
             <label className="group relative mx-auto flex aspect-square w-full max-w-[220px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[22px] border border-dashed border-line-strong bg-surface-2 text-center hover:border-primary sm:max-w-none">
               {previewUrl ? (
                 <>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- local blob: preview, nothing to optimize */}
                   <img src={previewUrl} alt="Preview" className="absolute inset-0 h-full w-full object-cover" />
                   <span className="absolute inset-0 grid place-items-center bg-black/45 text-[12.5px] font-medium text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                     Replace photo
@@ -330,7 +332,9 @@ export function Dashboard({ me }: { me: AdminUser }) {
           {products.map((product) => (
             <li key={product.id} className="flex items-center gap-3 py-4 sm:gap-4">
               {product.image ? (
-                <img src={product.image} alt="" className="h-14 w-14 shrink-0 rounded-2xl object-cover sm:h-16 sm:w-16" />
+                <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl sm:h-16 sm:w-16">
+                  <Image src={product.image} alt="" fill sizes="64px" className="object-cover" />
+                </span>
               ) : (
                 <span className="h-14 w-14 shrink-0 rounded-2xl bg-surface-2 sm:h-16 sm:w-16" />
               )}

@@ -1,13 +1,17 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Search, ShoppingBag, User, X, Moon, Sun, ArrowRight } from 'lucide-react'
-import { useCartStore } from '@/store/useCartStore'
+import { useCartStore, productHref } from '@/store/useCartStore'
 import { useUserStore } from '@/store/useUserStore'
-import { LoginModal } from '@/components/LoginModal'
+import dynamic from 'next/dynamic'
+
+// Loaded only when someone opens it, so it isn't in every page's first download
+const LoginModal = dynamic(() => import('@/components/LoginModal').then((m) => m.LoginModal), { ssr: false })
 import { getProducts } from '@/lib/products'
 import { Product } from '@/store/useCartStore'
 import { useHydrated } from '@/lib/useHydrated'
@@ -38,6 +42,9 @@ export function Navbar() {
 
   const cartCount = useCartStore((s) => s.items.reduce((acc, i) => acc + i.quantity, 0))
   const { user, isLoginModalOpen, openLoginModal, closeLoginModal } = useUserStore()
+  // Keep the modal mounted after first open so its exit animation can play
+  const [loginMounted, setLoginMounted] = useState(false)
+  if (isLoginModalOpen && !loginMounted) setLoginMounted(true)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -126,7 +133,7 @@ export function Navbar() {
           >
             <Link href="/" className="press flex items-center gap-2.5 rounded-full pr-2" aria-label="Natural Remedies home">
               <span className="relative grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-black/5">
-                <img src="/logo.png" alt="" className="h-8 w-8 object-contain" />
+                <Image src="/logo.png" alt="" width={32} height={29} className="h-8 w-8 object-contain" preload />
               </span>
               <span className="whitespace-nowrap text-[15px] font-semibold tracking-[-0.02em]">Natural Remedies</span>
             </Link>
@@ -275,11 +282,11 @@ export function Navbar() {
                       matches.map((p) => (
                         <Link
                           key={p.id}
-                          href={`/products/${p.id}`}
+                          href={productHref(p)}
                           className="press flex items-center gap-3 rounded-2xl px-3 py-2 hover:bg-foreground/[0.04]"
                         >
-                          <span className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-surface-2">
-                            {p.image && <img src={p.image} alt="" className="h-full w-full object-cover" />}
+                          <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-surface-2">
+                            {p.image && <Image src={p.image} alt="" fill sizes="40px" className="object-cover" />}
                           </span>
                           <span className="flex-1 text-[15px] font-medium">{p.name}</span>
                           <span className="text-[14px] tabular-nums text-muted">₹{p.price}</span>
@@ -346,7 +353,7 @@ export function Navbar() {
         </div>
       </header>
 
-      <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
+      {loginMounted && <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />}
     </>
   )
 }

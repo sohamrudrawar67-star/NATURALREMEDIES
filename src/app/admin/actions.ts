@@ -1,11 +1,13 @@
 'use server'
 
 import { headers } from 'next/headers'
+import { revalidatePath } from 'next/cache'
 import sharp from 'sharp'
 import { auth } from '@/lib/auth'
 import { pool } from '@/lib/db'
 import { requireAdmin } from '@/lib/admin'
 import { ID_RE } from '@/lib/catalog'
+import { uniqueSlug } from '@/lib/slug'
 
 /*
  * Every action re-checks the admin session against the database before touching data.
@@ -14,10 +16,13 @@ import { ID_RE } from '@/lib/catalog'
 
 type Result<T = undefined> = { ok: true; data?: T } | { ok: false; error: string }
 
-async function guarded<T>(fn: () => Promise<T>): Promise<Result<T>> {
+async function guarded<T>(fn: () => Promise<T>, opts: { touchesCatalog?: boolean } = {}): Promise<Result<T>> {
   try {
     await requireAdmin()
-    return { ok: true, data: await fn() }
+    const data = await fn()
+    // Refresh the pre-rendered shop, product pages, sitemap and llms.txt
+    if (opts.touchesCatalog) revalidatePath('/', 'layout')
+    return { ok: true, data }
   } catch (error) {
     if (error instanceof Error && error.message === 'UNAUTHORIZED') {
       return { ok: false, error: 'Your session has ended. Please sign in again.' }
@@ -83,13 +88,14 @@ export async function saveProduct(form: FormData): Promise<Result> {
     } else {
       if (!image) throw new UserError('Add a photo.')
       await pool.query(
-        `insert into product (name, description, price, image, image_type, sort_order)
-         values ($1, $2, $3, $4, 'image/jpeg', (select coalesce(max(sort_order), 0) + 1 from product))`,
-        [name, description, price, image]
+        `insert into product (name, description, price, image, image_type, slug, sort_order)
+         values ($1, $2, $3, $4, 'image/jpeg', $5, (select coalesce(max(sort_order), 0) + 1 from product))`,
+        // Readable URL from the name (kept stable afterwards, so links never break)
+        [name, description, price, image, await uniqueSlug(name)]
       )
     }
     return undefined
-  })
+  }, { touchesCatalog: true })
 }
 
 export async function deleteProduct(id: string): Promise<Result> {
@@ -97,7 +103,7 @@ export async function deleteProduct(id: string): Promise<Result> {
     if (!ID_RE.test(id)) throw new UserError('Unknown product.')
     await pool.query('delete from product where id = $1', [id])
     return undefined
-  })
+  }, { touchesCatalog: true })
 }
 
 export async function setOutOfStock(id: string, outOfStock: boolean): Promise<Result> {
@@ -105,7 +111,7 @@ export async function setOutOfStock(id: string, outOfStock: boolean): Promise<Re
     if (!ID_RE.test(id)) throw new UserError('Unknown product.')
     await pool.query('update product set is_out_of_stock = $2, updated_at = now() where id = $1', [id, outOfStock === true])
     return undefined
-  })
+  }, { touchesCatalog: true })
 }
 
 // ---------- Admin accounts ----------

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRef, useState } from 'react'
 import {
   AnimatePresence,
@@ -13,7 +14,7 @@ import {
   MotionValue,
 } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
-import { Product } from '@/store/useCartStore'
+import { Product, productHref } from '@/store/useCartStore'
 import { CartQuantityButton } from '@/components/CartQuantityButton'
 import { useCoarsePointer, useViewport } from '@/lib/useViewport'
 
@@ -66,7 +67,7 @@ export function ProductCoverflow({ products }: { products: Product[] }) {
             <h2 className="text-[clamp(32px,4.6vw,60px)] font-semibold leading-[1] tracking-[-0.04em]">
               The <em className="font-serif font-normal italic">shelf.</em>
             </h2>
-            <div className="flex items-center gap-1.5 pb-2" role="tablist" aria-label="Choose product">
+            <div className="-mr-2 flex items-center pb-1" role="tablist" aria-label="Choose product">
               {products.map((p, i) => (
                 <button
                   key={p.id}
@@ -74,7 +75,7 @@ export function ProductCoverflow({ products }: { products: Product[] }) {
                   aria-selected={i === active}
                   aria-label={p.name}
                   onClick={() => goTo(i)}
-                  className="press grid h-6 place-items-center px-0.5"
+                  className="press grid h-10 min-w-8 place-items-center px-1.5"
                 >
                   <span
                     className="block h-1.5 rounded-full bg-foreground transition-[width,opacity] duration-300 ease-[var(--ease-out)]"
@@ -113,7 +114,7 @@ export function ProductCoverflow({ products }: { products: Product[] }) {
               <div className="mt-5 flex items-center gap-4">
                 <span className="text-[17px] font-medium tabular-nums">₹{current.price}</span>
                 <CartQuantityButton product={current} />
-                <Link href={`/products/${current.id}`} className="link-arrow hidden text-[14px] sm:inline-flex">
+                <Link href={productHref(current)} className="link-arrow hidden text-[14px] sm:inline-flex">
                   Details <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
@@ -165,7 +166,7 @@ function ShelfCard({
       className="absolute inset-0 overflow-hidden rounded-[28px] bg-surface-2 ring-1 ring-black/5 will-change-transform dark:ring-white/10"
     >
       {product.image ? (
-        <img src={product.image} alt="" className="h-full w-full object-cover" draggable={false} />
+        <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 64vw, 400px" className="object-cover" draggable={false} />
       ) : (
         <span className="grid h-full w-full place-items-center text-sm text-muted">{product.name}</span>
       )}

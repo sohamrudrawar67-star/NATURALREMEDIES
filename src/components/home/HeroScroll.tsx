@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRef } from 'react'
 import { motion, useReducedMotion, useScroll, useSpring, useTransform, MotionValue } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
-import { Product } from '@/store/useCartStore'
+import { Product, productHref } from '@/store/useCartStore'
 import { HeroGreeting } from '@/components/HeroGreeting'
 import { useCoarsePointer, useViewport } from '@/lib/useViewport'
 
@@ -197,12 +198,12 @@ function HeroCard({
           className="h-full w-full"
         >
           <Link
-            href={`/products/${product.id}`}
+            href={productHref(product)}
             className="group relative block h-full w-full overflow-hidden rounded-[22px] bg-surface-2 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.55)] ring-1 ring-black/5 dark:ring-white/10 sm:rounded-[28px]"
             tabIndex={-1}
           >
             {product.image && (
-              <img src={product.image} alt={product.name} className="h-full w-full object-cover" draggable={false} />
+              <Image src={product.image} alt={product.name} fill preload sizes="(max-width: 768px) 50vw, 340px" className="object-cover" draggable={false} />
             )}
             {/* Specular edge — the glass-case catch light */}
             <span aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(160deg,rgba(255,255,255,0.28)_0%,transparent_32%,transparent_70%,rgba(0,0,0,0.18)_100%)]" />

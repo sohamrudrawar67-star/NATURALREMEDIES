@@ -23,14 +23,3 @@ export const getProducts = async (options?: { fresh?: boolean }): Promise<Produc
   if (products.length === 0) catalogPromise = null
   return products
 }
-
-export const getProductById = async (id: string): Promise<Product | null> => {
-  try {
-    const res = await fetch(`/api/products/${encodeURIComponent(id)}`, { cache: 'no-store' })
-    if (!res.ok) return null
-    return (await res.json()) as Product
-  } catch (error) {
-    console.error('Error fetching product:', error)
-    return null
-  }
-}

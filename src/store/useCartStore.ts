@@ -8,7 +8,13 @@ export interface Product {
   description?: string
   image?: string
   isOutOfStock?: boolean
+  /** URL-friendly name, e.g. "honey-500g" */
+  slug?: string
+  updatedAt?: string
 }
+
+/** Canonical link to a product page (falls back to the id for old cart items). */
+export const productHref = (p: Pick<Product, 'id' | 'slug'>) => `/products/${p.slug || p.id}`
 
 export interface CartItem extends Product {
   quantity: number

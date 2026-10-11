@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useUserStore } from '@/store/useUserStore'
@@ -111,7 +112,7 @@ export function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
             </button>
 
             <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-black/5">
-              <img src="/logo.png" alt="" className="h-10 w-10 object-contain" />
+              <Image src="/logo.png" alt="" width={40} height={36} className="h-10 w-10 object-contain" />
             </span>
             <h2 id="login-title" className="mt-5 text-[26px] font-semibold leading-[1.1] tracking-[-0.035em]">
               Where should we <em className="font-serif font-normal italic">send it?</em>

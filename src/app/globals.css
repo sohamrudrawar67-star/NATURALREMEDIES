@@ -9,7 +9,7 @@
   --surface: #ffffff;
   --surface-2: #f2f2ef;
   --muted: #6e6e73;
-  --subtle: #8e8e93;
+  --subtle: #737378;
   --line: rgba(0, 0, 0, 0.08);
   --line-strong: rgba(0, 0, 0, 0.14);
 
@@ -39,7 +39,7 @@
   --surface: #111112;
   --surface-2: #1c1c1e;
   --muted: #a1a1a6;
-  --subtle: #6e6e73;
+  --subtle: #8e8e93;
   --line: rgba(255, 255, 255, 0.09);
   --line-strong: rgba(255, 255, 255, 0.16);
 
@@ -235,9 +235,8 @@ body {
 }
 @keyframes enter {
   from {
-    opacity: 0;
     transform: translateY(10px);
-    filter: blur(4px);
+    filter: blur(6px);
   }
 }
 

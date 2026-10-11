@@ -5,6 +5,7 @@
 import { getMigrations } from 'better-auth/db/migration'
 import { auth } from '../src/lib/auth'
 import { pool } from '../src/lib/db'
+import { uniqueSlug } from '../src/lib/slug'
 
 const APP_SCHEMA = `
 create table if not exists product (
@@ -29,6 +30,10 @@ create table if not exists customer (
   created_at timestamptz not null default now()
 );
 create index if not exists customer_created_at_idx on customer (created_at desc);
+
+-- Readable, stable URLs: /products/honey-500g
+alter table product add column if not exists slug text;
+create unique index if not exists product_slug_idx on product (slug);
 `
 
 async function main() {
@@ -40,6 +45,13 @@ async function main() {
     console.log('Auth tables: up to date')
   }
   await pool.query(APP_SCHEMA)
+  // Give any product without a slug one derived from its name
+  const { rows } = await pool.query<{ id: string; name: string }>('select id, name from product where slug is null')
+  for (const row of rows) {
+    const slug = await uniqueSlug(row.name, row.id)
+    await pool.query('update product set slug = $2 where id = $1', [row.id, slug])
+    console.log(`  slug: ${row.name} → /products/${slug}`)
+  }
   console.log('App tables: product, customer ready')
 }
 

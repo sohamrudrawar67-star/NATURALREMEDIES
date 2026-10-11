@@ -1,14 +1,33 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
-import { WHATSAPP_URL } from '@/lib/site'
+import { breadcrumbLd, graph } from '@/lib/seo'
+import { WHATSAPP_URL, absoluteUrl, jsonLd } from '@/lib/site'
 import { Reveal } from '@/components/Reveal'
 
-export const metadata = {
-  title: 'Our story — Natural Remedies',
+export const metadata: Metadata = {
+  title: 'Our story',
+  description:
+    'Natural Remedies is a small homegrown brand: a short list of natural everyday goods, clear prices and ordering that takes about a minute on WhatsApp.',
+  alternates: { canonical: '/about' },
 }
+
+const aboutLd = graph(
+  {
+    '@type': 'AboutPage',
+    url: absoluteUrl('/about'),
+    name: 'Our story',
+    about: { '@id': absoluteUrl('/#organization') },
+  },
+  breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'Our story', path: '/about' },
+  ])
+)
 
 export default function AboutPage() {
   return (
     <div className="pb-24">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(aboutLd) }} />
       <section className="mx-auto max-w-[1040px] px-6 pt-36 sm:pt-44">
         <p className="enter text-[14px] font-medium text-primary">Our story</p>
         <h1
@@ -22,7 +41,7 @@ export default function AboutPage() {
 
       <section className="mx-auto mt-20 grid max-w-[1040px] gap-12 px-6 md:grid-cols-[1fr_1.3fr] md:gap-20">
         <Reveal>
-          <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-subtle">Who we are</p>
+          <h2 className="text-[13px] font-medium uppercase tracking-[0.14em] text-subtle">Who we are</h2>
         </Reveal>
         <Reveal delay={60}>
           <div className="space-y-6 text-[clamp(18px,1.8vw,22px)] leading-[1.55] tracking-[-0.01em]">

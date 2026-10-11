@@ -45,7 +45,7 @@ function Word({
   serif: boolean
   still: boolean
 }) {
-  const opacity = useTransform(progress, range, [0.14, 1])
+  const opacity = useTransform(progress, range, [0.5, 1])
   return (
     <>
       <motion.span

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { WHATSAPP_URL } from '@/lib/site'
 
 export function Footer() {
@@ -9,7 +10,7 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-2.5">
               <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-black/5">
-                <img src="/logo.png" alt="" className="h-8 w-8 object-contain" />
+                <Image src="/logo.png" alt="" width={32} height={29} className="h-8 w-8 object-contain" />
               </span>
               <span className="text-[15px] font-semibold tracking-[-0.02em]">Natural Remedies</span>
             </div>
@@ -36,10 +37,9 @@ export function Footer() {
 
         <div
           aria-hidden
-          className="pointer-events-none mt-16 select-none whitespace-nowrap text-center text-[clamp(56px,15.5vw,220px)] font-semibold leading-[0.8] tracking-[-0.06em] text-foreground/[0.06]"
-        >
-          Natural Remedies
-        </div>
+          data-wordmark="Natural Remedies"
+          className="pointer-events-none mt-16 select-none whitespace-nowrap text-center text-[clamp(56px,15.5vw,220px)] font-semibold leading-[0.8] tracking-[-0.06em] text-foreground/[0.06] before:content-[attr(data-wordmark)]"
+        />
 
         <div className="mt-8 flex flex-col justify-between gap-2 text-[12.5px] text-subtle sm:flex-row">
           <span>© {new Date().getFullYear()} Natural Remedies</span>
@@ -53,7 +53,7 @@ export function Footer() {
 function FooterCol({ title, links }: { title: string; links: { href: string; label: string; external?: boolean }[] }) {
   return (
     <div>
-      <h4 className="text-[12.5px] font-medium text-subtle">{title}</h4>
+      <h2 className="text-[12.5px] font-medium text-subtle">{title}</h2>
       <ul className="mt-3 space-y-2.5">
         {links.map((l) => (
           <li key={l.href}>

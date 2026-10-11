@@ -1,23 +1,26 @@
 'use client'
 
-import { Product } from '@/store/useCartStore'
+import { Product, productHref } from '@/store/useCartStore'
 import { cn } from '@/lib/utils'
 import { CartQuantityButton } from './CartQuantityButton'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function ProductCard({ product, className }: { product: Product; className?: string }) {
   return (
     <article className={cn('group flex flex-col', className)}>
       <Link
-        href={`/products/${product.id}`}
+        href={productHref(product)}
         className="relative block aspect-[4/5] overflow-hidden rounded-[26px] bg-surface-2 ring-1 ring-black/[0.04] dark:ring-white/[0.06]"
       >
         {product.image ? (
-          <img
+          <Image
             src={product.image}
             alt={product.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className={cn(
-              'h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-out)] group-hover:scale-[1.03]',
+              'object-cover transition-transform duration-500 ease-[var(--ease-out)] group-hover:scale-[1.03]',
               product.isOutOfStock && 'grayscale-[0.6] opacity-80'
             )}
           />
@@ -31,7 +34,7 @@ export function ProductCard({ product, className }: { product: Product; classNam
 
       <div className="flex items-start justify-between gap-4 px-1 pt-4">
         <div className="min-w-0">
-          <Link href={`/products/${product.id}`}>
+          <Link href={productHref(product)}>
             <h3 className="truncate text-[17px] font-semibold tracking-[-0.02em]">{product.name}</h3>
           </Link>
           {product.description && (

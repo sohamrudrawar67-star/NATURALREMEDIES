@@ -1,12 +1,13 @@
 'use client'
 
-import { useCartStore, CartItem } from '@/store/useCartStore'
+import { useCartStore, CartItem, productHref } from '@/store/useCartStore'
 import { useUserStore } from '@/store/useUserStore'
 import { useHydrated } from '@/lib/useHydrated'
 import { Minus, Plus, X, ShoppingBag, Lock } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import Image from 'next/image'
 import { WHATSAPP_URL } from '@/lib/site'
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const
@@ -102,13 +103,13 @@ export default function CartPage() {
                 transition={{ duration: 0.25, ease: EASE_OUT, layout: { duration: 0.3, ease: EASE_OUT } }}
                 className="flex items-center gap-4 py-5 sm:gap-6"
               >
-                <Link href={`/products/${item.id}`} className="h-24 w-24 shrink-0 overflow-hidden rounded-[20px] bg-surface-2 sm:h-28 sm:w-28">
-                  {item.image && <img src={item.image} alt={item.name} className="h-full w-full object-cover" />}
+                <Link href={productHref(item)} className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[20px] bg-surface-2 sm:h-28 sm:w-28">
+                  {item.image && <Image src={item.image} alt={item.name} fill sizes="112px" className="object-cover" />}
                 </Link>
 
                 <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
-                    <Link href={`/products/${item.id}`} className="block truncate text-[17px] font-semibold tracking-[-0.02em]">
+                    <Link href={productHref(item)} className="block truncate text-[17px] font-semibold tracking-[-0.02em]">
                       {item.name}
                     </Link>
                     <div className="mt-0.5 text-[14px] tabular-nums text-muted">₹{item.price} each</div>
