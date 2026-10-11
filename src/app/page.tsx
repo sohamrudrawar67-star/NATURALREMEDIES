@@ -24,7 +24,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(graph(itemListLd(products, `${SITE_NAME} products`), faqLd(faqs))) }}
       />
-      <HomeClient products={products} faq={<Faq faqs={faqs} />} />
+      <HomeClient products={products} faqs={faqs} faq={<Faq faqs={faqs} />} />
     </>
   )
 }

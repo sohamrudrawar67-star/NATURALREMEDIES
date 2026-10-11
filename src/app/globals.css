@@ -276,9 +276,3 @@ body {
   }
 }
 
-@media (max-width: 768px) {
-  html {
-    scroll-snap-type: y proximity;
-    scroll-padding-top: 4.5rem;
-  }
-}
