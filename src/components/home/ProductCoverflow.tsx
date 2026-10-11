@@ -25,6 +25,11 @@ const EASE_OUT = [0.23, 1, 0.32, 1] as const
  * Each product gets ~70vh of scroll so it never feels rushed.
  */
 export function ProductCoverflow({ products }: { products: Product[] }) {
+  if (products.length === 0) return null
+  return <ProductCoverflowInner products={products} />
+}
+
+function ProductCoverflowInner({ products }: { products: Product[] }) {
   const ref = useRef<HTMLElement>(null)
   const reduceMotion = useReducedMotion()
   const count = products.length
@@ -56,7 +61,6 @@ export function ProductCoverflow({ products }: { products: Product[] }) {
     window.scrollTo({ top: top + scrollable * p, behavior: reduceMotion ? 'auto' : 'smooth' })
   }
 
-  if (count === 0) return null
   const current = products[Math.min(active, count - 1)]
 
   return (
