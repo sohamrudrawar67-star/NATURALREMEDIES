@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Edit2, ImagePlus, KeyRound, Loader2, LogOut, PackageCheck, PackageX, Trash2, UserMinus, X } from 'lucide-react'
+import { Edit2, ImagePlus, KeyRound, Loader2, LogOut, ToggleLeft, ToggleRight, Trash2, UserMinus, X } from 'lucide-react'
 import { getProducts } from '@/lib/products'
 import { authClient } from '@/lib/auth-client'
 import type { Product } from '@/store/useCartStore'
@@ -140,9 +140,33 @@ export function Dashboard({ me }: { me: AdminUser }) {
   }
 
   const handleToggleStock = async (product: Product) => {
-    const res = await setOutOfStock(product.id, !product.isOutOfStock)
-    if (!res.ok) return fail(res.error)
-    loadProducts()
+    const nextState = !product.isOutOfStock
+
+    // 1. Instant optimistic update: 0ms delay in UI!
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, isOutOfStock: nextState } : p))
+    )
+    toast(nextState ? `${product.name} marked sold out` : `${product.name} marked in stock`, {
+      duration: 2000,
+    })
+
+    // 2. Background server update
+    try {
+      const res = await setOutOfStock(product.id, nextState)
+      if (!res.ok) {
+        // Revert on error
+        setProducts((prev) =>
+          prev.map((p) => (p.id === product.id ? { ...p, isOutOfStock: product.isOutOfStock } : p))
+        )
+        fail(res.error)
+      }
+    } catch {
+      // Revert on network exception
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, isOutOfStock: product.isOutOfStock } : p))
+      )
+      toast.error('Could not update stock status. Check your connection.')
+    }
   }
 
   const handleAddAdmin = async (e: React.FormEvent) => {
@@ -342,16 +366,49 @@ export function Dashboard({ me }: { me: AdminUser }) {
                 <div className="truncate text-[15.5px] font-semibold tracking-[-0.015em]">{product.name}</div>
                 <div className="mt-0.5 flex items-center gap-2 text-[13.5px] text-muted">
                   <span className="tabular-nums">₹{product.price}</span>
-                  <span className={product.isOutOfStock ? 'text-danger' : 'text-primary'}>· {product.isOutOfStock ? 'Sold out' : 'In stock'}</span>
+                  <span className="text-line-strong">·</span>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleStock(product)}
+                    title={product.isOutOfStock ? 'Click to mark in stock' : 'Click to mark sold out'}
+                    className={`press inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px] font-medium transition-colors ${
+                      product.isOutOfStock
+                        ? 'bg-danger/10 text-danger hover:bg-danger/20 ring-1 ring-danger/25'
+                        : 'bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/25'
+                    }`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${product.isOutOfStock ? 'bg-danger' : 'bg-primary animate-pulse'}`} />
+                    {product.isOutOfStock ? 'Sold out' : 'In stock'}
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-0.5 sm:gap-1">
+              <div className="flex items-center gap-1 sm:gap-1.5">
                 <AdminAction label="Edit" onClick={() => startEdit(product)}>
                   <Edit2 className="h-4 w-4" strokeWidth={1.75} />
                 </AdminAction>
-                <AdminAction label={product.isOutOfStock ? 'Mark in stock' : 'Mark sold out'} onClick={() => handleToggleStock(product)}>
-                  {product.isOutOfStock ? <PackageCheck className="h-4 w-4" strokeWidth={1.75} /> : <PackageX className="h-4 w-4" strokeWidth={1.75} />}
-                </AdminAction>
+                <button
+                  type="button"
+                  onClick={() => handleToggleStock(product)}
+                  title={product.isOutOfStock ? 'Currently Sold out. Click to mark In stock' : 'Currently In stock. Click to mark Sold out'}
+                  aria-label={product.isOutOfStock ? 'Mark in stock' : 'Mark sold out'}
+                  className={`press flex items-center gap-1.5 h-9 px-3 rounded-full border text-[12px] font-medium transition-all ${
+                    product.isOutOfStock
+                      ? 'border-danger/30 bg-danger/10 text-danger hover:bg-danger/20'
+                      : 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/20'
+                  }`}
+                >
+                  {product.isOutOfStock ? (
+                    <>
+                      <ToggleLeft className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+                      <span className="hidden sm:inline">Sold out</span>
+                    </>
+                  ) : (
+                    <>
+                      <ToggleRight className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+                      <span className="hidden sm:inline">In stock</span>
+                    </>
+                  )}
+                </button>
                 {confirmDelete === product.id ? (
                   <button onClick={() => handleRemoveProduct(product.id)} className="press h-9 rounded-full bg-danger px-3 text-[13px] font-medium text-white">
                     Delete?
