@@ -11,7 +11,7 @@ export function StatementReveal({ text, emphasis = [] }: { text: string; emphasi
   const words = text.split(' ')
 
   return (
-    <section className="mx-auto max-w-[1040px] px-6 py-[18vh] sm:py-[24vh]">
+    <section className="mx-auto max-w-[1040px] px-6 py-12 sm:py-[24vh]">
       <p
         ref={ref}
         className="text-balance text-[clamp(28px,4.4vw,56px)] font-semibold leading-[1.12] tracking-[-0.035em]"

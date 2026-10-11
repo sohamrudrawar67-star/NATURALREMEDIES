@@ -21,23 +21,106 @@ const easeOut = (t: number) => 1 - Math.pow(1 - t, 3)
  * As you scroll they stand up, spread out and face you. Pinned for ~2 viewports.
  */
 export function HeroScroll({ products }: { products: Product[] }) {
+  const { w, ready } = useViewport()
+  const withImages = products.filter((p) => p.image)
+  const ordered = withImages.slice(0, 3).sort((a, b) => a.price - b.price)
+
+  if (ready && w < 768) {
+    return <MobileHero products={ordered} />
+  }
+
+  return <DesktopHero products={ordered} />
+}
+
+function MobileHero({ products }: { products: Product[] }) {
+  return (
+    <section className="relative min-h-[90svh] flex flex-col justify-between overflow-hidden px-5 pt-[max(11vh,5.5rem)] pb-6" aria-label="Introduction">
+      {/* Ambient background glow */}
+      <div className="absolute inset-0 -z-10 grain [mask-image:linear-gradient(to_bottom,black_85%,transparent)]">
+        <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,#f4f1ea_0%,var(--background)_60%)] dark:bg-[radial-gradient(90%_70%_at_50%_30%,#151a11_0%,#000_65%)]" />
+        <div className="absolute left-1/2 top-[55%] h-[40vh] w-[95vw] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(120,150,80,0.18),transparent)] dark:bg-[radial-gradient(closest-side,rgba(163,207,114,0.14),transparent)]" />
+      </div>
+
+      {/* Header content */}
+      <div className="flex flex-col items-center text-center">
+        <p className="enter mb-3 inline-flex items-center gap-2 text-[13px] font-medium tracking-[-0.005em] text-muted">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          <HeroGreeting fallback="A small homegrown shop" />
+        </p>
+        <h1 className="text-balance text-[clamp(40px,10vw,54px)] font-semibold leading-[0.98] tracking-[-0.04em]">
+          <span className="enter inline-block">Good things,</span>
+          <br />
+          <span className="enter inline-block">
+            kept <em className="font-serif font-normal italic tracking-[-0.02em] text-primary">simple.</em>
+          </span>
+        </h1>
+        <p className="enter mt-3 max-w-[32ch] text-pretty text-[15px] leading-[1.45] text-muted">
+          Simple, natural everyday goods from a small homegrown brand. Order in a minute, over WhatsApp.
+        </p>
+        <div className="enter mt-5 flex items-center gap-3">
+          <Link href="/products" className="press btn-primary h-11 px-6 text-[14.5px]">
+            Shop now
+          </Link>
+          <Link href="/about" className="press btn-secondary h-11 px-6 text-[14.5px]">
+            Our story
+          </Link>
+        </div>
+      </div>
+
+      {/* Visual product cards in clean showcase fan */}
+      <div className="relative mt-7 mb-2 flex justify-center items-end" style={{ height: 260 }}>
+        <div className="absolute bottom-1 left-1/2 h-10 w-[85vw] -translate-x-1/2 rounded-[50%] bg-black/15 blur-2xl dark:bg-black/60" />
+        <div className="relative flex items-center justify-center w-full max-w-[360px] h-[240px]">
+          {products.map((p, i) => {
+            const isCenter = i === 1 || (products.length === 1 && i === 0)
+            const isLeft = i === 0 && products.length > 1
+            const isRight = i === 2
+
+            const rotation = isLeft ? -7 : isRight ? 7 : 0
+            const offsetX = isLeft ? -44 : isRight ? 44 : 0
+            const zIndex = isCenter ? 20 : 10
+            const scale = isCenter ? 1.04 : 0.92
+
+            return (
+              <Link
+                key={p.id}
+                href={productHref(p)}
+                style={{
+                  transform: `translateX(${offsetX}%) rotate(${rotation}deg) scale(${scale})`,
+                  zIndex,
+                }}
+                className="absolute transition-transform duration-200 active:scale-95 block w-[160px] aspect-[4/5] rounded-[22px] overflow-hidden bg-surface-2 shadow-[0_22px_45px_-15px_rgba(0,0,0,0.5)] ring-1 ring-black/5 dark:ring-white/10"
+              >
+                {p.image && (
+                  <Image src={p.image} alt={p.name} fill sizes="160px" className="object-cover" />
+                )}
+                <span aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,0.25)_0%,transparent_35%,transparent_70%,rgba(0,0,0,0.2)_100%)]" />
+                <div className="absolute inset-x-2 bottom-2 rounded-xl bg-white/90 dark:bg-black/75 px-2.5 py-1.5 flex items-center justify-between text-[12px] font-medium text-[#1d1d1f] dark:text-white shadow-sm">
+                  <span className="truncate">{p.name}</span>
+                  <span className="shrink-0 tabular-nums opacity-60">₹{p.price}</span>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function DesktopHero({ products }: { products: Product[] }) {
   const ref = useRef<HTMLElement>(null)
   const reduceMotion = useReducedMotion()
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
-  // A touch of smoothing so wheel steps don't feel stair-stepped. Not enough to feel floaty.
   const smooth = useSpring(scrollYProgress, { stiffness: 260, damping: 40, mass: 0.4, restDelta: 0.0005 })
   const coarse = useCoarsePointer()
   const progress = reduceMotion || coarse ? scrollYProgress : smooth
 
   const { w, h: vh, ready } = useViewport()
-  const mobile = w < 768
-  // Upright cards must fit between the caption (~34vh) and the bottom edge
-  const byWidth = mobile ? Math.min(w * 0.5, 240) : Math.min(Math.max(w * 0.22, 200), 340)
+  const mobile = false
+  const byWidth = Math.min(Math.max(w * 0.22, 200), 340)
   const cardW = Math.min(byWidth, (vh * 0.46) / 1.25)
-
-  const withImages = products.filter((p) => p.image)
-  // Smallest to largest reads naturally left to right (100g → 500g → 1kg)
-  const ordered = withImages.slice(0, 3).sort((a, b) => a.price - b.price)
+  const ordered = products
 
   const headlineOpacity = useTransform(progress, [0.04, 0.3], [1, 0])
   const headlineTransform = useTransform(progress, (v) => {
