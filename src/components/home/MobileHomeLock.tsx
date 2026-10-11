@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'motion/react'
-import { ArrowRight, ShoppingBag, ChevronDown, Check, Plus, MessageCircle } from 'lucide-react'
+import { ArrowRight, ShoppingBag, ChevronDown, Check, MessageCircle } from 'lucide-react'
 import { Product, productHref } from '@/store/useCartStore'
 import { CartQuantityButton } from '@/components/CartQuantityButton'
 import { WHATSAPP_URL } from '@/lib/site'
@@ -20,6 +20,7 @@ const EASE_OUT = [0.23, 1, 0.32, 1] as const
 export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [activeSlide, setActiveSlide] = useState(0)
+  const [scrollRatio, setScrollRatio] = useState(0)
 
   const withImages = products.filter((p) => p.image)
   const heroProducts = withImages.slice(0, 3).sort((a, b) => a.price - b.price)
@@ -27,9 +28,9 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
   const heroJarImage = products.length > 0 ? [...products].sort((a, b) => b.price - a.price)[0]?.image : undefined
 
   // Total slides:
-  // Slide 0: Hero Intro
-  // Slide 1: Hero Standup (3D cards rise up)
-  // Slide 2: Statement Reveal
+  // Slide 0: Hero Intro (Clean text & buttons, Image 2)
+  // Slide 1: 3D Product Standup Beat (Cards rise & stand in 3D, Image 3 & Beat 2)
+  // Slide 2: Statement Reveal (Words light up)
   // Slide 3 .. 3 + shelfProducts.length - 1: Shelf products (1 slide per product)
   // Slide N: How To Order
   // Slide N+1: FAQ
@@ -43,6 +44,14 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
+
+    const handleScroll = () => {
+      const h = container.clientHeight || window.innerHeight
+      const r = Math.min(1, Math.max(0, container.scrollTop / h))
+      setScrollRatio(r)
+    }
+
+    container.addEventListener('scroll', handleScroll, { passive: true })
 
     const slideElements = container.querySelectorAll<HTMLElement>('[data-slide-index]')
     const observer = new IntersectionObserver(
@@ -63,7 +72,10 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
     )
 
     slideElements.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
+    return () => {
+      container.removeEventListener('scroll', handleScroll)
+      observer.disconnect()
+    }
   }, [totalSlides])
 
   const scrollToSlide = (idx: number) => {
@@ -74,6 +86,9 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
       target.scrollIntoView({ behavior: 'smooth' })
     }
   }
+
+  // Animation interpolation factor between Slide 0 and Slide 1 (0 = flat on table, 1 = stood up in 3D)
+  const standupProgress = activeSlide >= 1 ? 1 : scrollRatio
 
   return (
     <div
@@ -105,106 +120,63 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
       </div>
 
       {/* ======================================================== */}
-      {/* SLIDE 0: HERO INTRO (CARDS LYING FLAT ON TABLE)           */}
+      {/* SLIDE 0: HERO INTRO (CLEAN EDITORIAL WELCOME - IMAGE 2)    */}
       {/* ======================================================== */}
       <section
         data-slide-index={0}
-        className="relative h-[100svh] w-full shrink-0 snap-start snap-always overflow-hidden flex flex-col justify-between pt-[max(4.5rem,11svh)] pb-5 px-5"
+        className="relative h-[100svh] w-full shrink-0 snap-start snap-always overflow-hidden flex flex-col justify-between pt-[max(5rem,14svh)] pb-8 px-6 text-center"
         style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
       >
         {/* Background glow */}
         <div className="absolute inset-0 -z-10 grain pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,#f4f1ea_0%,var(--background)_60%)] dark:bg-[radial-gradient(90%_70%_at_50%_30%,#151a11_0%,#000_65%)]" />
-          <div className="absolute left-1/2 top-[60%] h-[40vh] w-[90vw] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(120,150,80,0.16),transparent)] dark:bg-[radial-gradient(closest-side,rgba(163,207,114,0.12),transparent)]" />
+          <div className="absolute left-1/2 top-[52%] h-[48vh] w-[90vw] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(120,150,80,0.18),transparent)] dark:bg-[radial-gradient(closest-side,rgba(163,207,114,0.12),transparent)]" />
         </div>
 
-        {/* Top Text Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE_OUT }}
-          className="flex flex-col items-center text-center z-10"
-        >
-          <p className="inline-flex items-center gap-2 text-[12.5px] font-medium text-muted mb-2.5">
+        {/* Center Content: Exact match to user screenshot (Image 2) */}
+        <div className="my-auto flex flex-col items-center text-center z-10 max-w-[340px] mx-auto">
+          <p className="inline-flex items-center gap-2 text-[13px] font-medium text-muted mb-3">
             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
             <HeroGreeting fallback="A small homegrown shop" />
           </p>
-          <h1 className="text-[clamp(34px,9vw,44px)] font-semibold leading-[0.98] tracking-[-0.04em]">
+
+          <h1 className="text-balance text-[clamp(40px,10.5vw,52px)] font-semibold leading-[0.96] tracking-[-0.045em]">
             Good things,
             <br />
             kept <em className="font-serif font-normal italic text-primary">simple.</em>
           </h1>
-          <p className="mt-2.5 max-w-[28ch] text-[14.5px] leading-[1.4] text-muted">
+
+          <p className="mt-4 max-w-[28ch] text-[15.5px] leading-[1.45] text-muted">
             Simple, natural everyday goods from a small homegrown brand. Order in a minute.
           </p>
-          <div className="mt-4 flex items-center gap-3">
-            <Link href="/products" className="press btn-primary h-10 px-5 text-[14px]">
+
+          <div className="mt-7 flex items-center justify-center gap-3">
+            <Link href="/products" className="press btn-primary h-12 px-7 text-[15px] font-medium">
               Shop now
             </Link>
-            <Link href="/about" className="press btn-secondary h-10 px-5 text-[14px]">
+            <Link href="/about" className="press btn-secondary h-12 px-7 text-[15px] font-medium">
               Our story
             </Link>
           </div>
-        </motion.div>
-
-        {/* 3D Stage: 3 Cards Lying Flat on Table */}
-        <div className="relative flex-1 flex items-center justify-center my-1" style={{ perspective: 1100 }}>
-          <div className="relative w-[140px] h-[175px]" style={{ transformStyle: 'preserve-3d' }}>
-            {heroProducts.map((p, i) => {
-              const k = i - 1 // -1, 0, 1
-              const scatters = [
-                { rx: 56, rz: -9, x: -55, y: 14 },
-                { rx: 56, rz: 1, x: 0, y: -4 },
-                { rx: 56, rz: 10, x: 55, y: 16 },
-              ][i % 3]
-
-              return (
-                <div
-                  key={p.id}
-                  className="absolute inset-0 transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-transform"
-                  style={{
-                    transform: `translate3d(${scatters.x}px, ${scatters.y}px, 0px) rotateX(${scatters.rx}deg) rotateZ(${scatters.rz}deg)`,
-                    zIndex: k === 0 ? 2 : 1,
-                  }}
-                >
-                  <Link
-                    href={productHref(p)}
-                    className="group relative block h-full w-full overflow-hidden rounded-[20px] bg-surface-2 shadow-[0_20px_35px_-15px_rgba(0,0,0,0.5)] ring-1 ring-black/5 dark:ring-white/10"
-                  >
-                    {p.image && (
-                      <Image
-                        src={p.image}
-                        alt={p.name}
-                        fill
-                        sizes="160px"
-                        className="object-cover"
-                        priority
-                      />
-                    )}
-                    <span className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(160deg,rgba(255,255,255,0.25)_0%,transparent_35%)]" />
-                  </Link>
-                </div>
-              )
-            })}
-          </div>
         </div>
 
-        {/* Bottom CTA / Swipe prompt */}
+        {/* Bottom CTA Button: Exactly as in Image 3 */}
         <button
           onClick={() => scrollToSlide(1)}
-          className="press mx-auto flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-2/80 backdrop-blur-sm border border-line text-[12.5px] font-medium text-muted hover:text-foreground"
+          className="press mx-auto flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-2/85 backdrop-blur-sm border border-line text-[13px] font-medium text-muted hover:text-foreground shadow-sm z-10"
         >
           <span>Explore our shelf</span>
-          <ChevronDown className="h-3.5 w-3.5 animate-bounce" />
+          <ChevronDown className="h-4 w-4 animate-bounce" />
         </button>
       </section>
 
       {/* ======================================================== */}
-      {/* SLIDE 1: HERO STANDUP BEAT (3D CARDS STAND UP & FAN OUT) */}
+      {/* SLIDE 1: 3D PRODUCT STANDUP BEAT (IMAGE 3 & BEAT 2)       */}
+      {/* ANIMATES AS YOU TRANSITION FROM SLIDE 0 TO SLIDE 1       */}
       {/* ======================================================== */}
       <section
         data-slide-index={1}
-        className="relative h-[100svh] w-full shrink-0 snap-start snap-always overflow-hidden flex flex-col justify-between pt-[max(4.5rem,11svh)] pb-5 px-5"
+        className="relative h-[100svh] w-full shrink-0 snap-start snap-always overflow-hidden flex flex-col justify-between pt-[max(4.5rem,11svh)] pb-6 px-6"
         style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
       >
         <div className="absolute inset-0 -z-10 grain pointer-events-none">
@@ -212,71 +184,83 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
         </div>
 
         {/* Top Text for Beat 2 */}
-        <motion.div
-          animate={activeSlide === 1 ? { opacity: 1, y: 0, filter: 'blur(0px)' } : { opacity: 0, y: 15, filter: 'blur(4px)' }}
-          transition={{ duration: 0.5, ease: EASE_OUT }}
-          className="flex flex-col items-center text-center z-10"
+        <div
+          className="flex flex-col items-center text-center z-10 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
+          style={{
+            opacity: Math.max(0.15, standupProgress),
+            transform: `translateY(${(1 - standupProgress) * 16}px)`,
+          }}
         >
-          <h2 className="text-[clamp(30px,7.8vw,40px)] font-semibold leading-[1] tracking-[-0.04em]">
+          <h2 className="text-[clamp(30px,7.8vw,42px)] font-semibold leading-[1] tracking-[-0.04em]">
             A short list, <em className="font-serif font-normal italic text-primary">on purpose.</em>
           </h2>
-          <p className="mt-2 max-w-[32ch] text-[14px] leading-[1.4] text-muted">
+          <p className="mt-2 max-w-[32ch] text-[14.5px] leading-[1.4] text-muted">
             We&rsquo;d rather sell a few things we like than a hundred we don&rsquo;t.
           </p>
           <Link href="/products" className="link-arrow mt-2.5 text-[14px] font-medium">
             See everything <ArrowRight className="h-3.5 w-3.5" />
           </Link>
-        </motion.div>
+        </div>
 
-        {/* 3D Stage: The 3 Cards STAND UP in 3D */}
-        <div className="relative flex-1 flex items-center justify-center my-1" style={{ perspective: 1200 }}>
-          <div className="relative w-[148px] h-[190px]" style={{ transformStyle: 'preserve-3d' }}>
+        {/* 3D Stage: 3 Cards STAND UP in 3D as you switch from Slide 0 to Slide 1 */}
+        <div className="relative flex-1 flex items-center justify-center my-2" style={{ perspective: 1200 }}>
+          <div className="relative w-[160px] h-[205px]" style={{ transformStyle: 'preserve-3d' }}>
             {heroProducts.map((p, i) => {
-              const k = i - 1 // -1, 0, 1
+              const k = i - 1 // -1 (left), 0 (center), 1 (right)
               const isCenter = k === 0
 
-              // Upright 3D fanned standup values
-              const standX = k * 74
-              const standY = isCenter ? -10 : 8
-              const standZ = isCenter ? 26 : -45
-              const standRy = -k * 18
-              const standRz = k * 3
+              // Dynamic values interpolating with standupProgress
+              // When standupProgress is 0: cards lie flat under table perspective (Image 3)
+              // When standupProgress is 1: cards rise up upright and fan out (Desktop website Beat 2)
+              const currentRx = (1 - standupProgress) * 58 // from 58deg flat to 0deg upright
+              const currentX = isCenter ? 0 : k * (55 + standupProgress * 30) // from 55px to 85px spread
+              const currentY = isCenter
+                ? (1 - standupProgress) * 38 - 8
+                : (1 - standupProgress) * 48 + 10
+              const currentZ = isCenter
+                ? standupProgress * 34
+                : (1 - standupProgress) * -20 - standupProgress * 40
+              const currentRy = isCenter ? 0 : -k * standupProgress * 16
+              const currentRz = isCenter ? 0 : k * ((1 - standupProgress) * 10 + standupProgress * 3)
+              const currentScale = isCenter
+                ? 0.95 + standupProgress * 0.12
+                : 0.88 + standupProgress * 0.05
 
               return (
                 <div
                   key={p.id}
-                  className="absolute inset-0 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-transform"
+                  className="absolute inset-0 transition-all duration-600 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-transform"
                   style={{
-                    transform: activeSlide === 1
-                      ? `translate3d(${standX}px, ${standY}px, ${standZ}px) rotateX(0deg) rotateY(${standRy}deg) rotateZ(${standRz}deg)`
-                      : `translate3d(${k * 50}px, 40px, 0px) rotateX(56deg) rotateY(0deg) rotateZ(0deg)`,
+                    transform: `translate3d(${currentX}px, ${currentY}px, ${currentZ}px) rotateX(${currentRx}deg) rotateY(${currentRy}deg) rotateZ(${currentRz}deg) scale(${currentScale})`,
                     zIndex: isCenter ? 20 : 10,
                   }}
                 >
                   <Link
                     href={productHref(p)}
-                    className="group relative block h-full w-full overflow-hidden rounded-[22px] bg-surface-2 shadow-[0_24px_50px_-20px_rgba(0,0,0,0.65)] ring-1 ring-black/10 dark:ring-white/15"
+                    className="group relative block h-full w-full overflow-hidden rounded-[22px] bg-surface-2 shadow-[0_26px_52px_-20px_rgba(0,0,0,0.65)] ring-1 ring-black/10 dark:ring-white/15"
                   >
                     {p.image && (
                       <Image
                         src={p.image}
                         alt={p.name}
                         fill
-                        sizes="160px"
+                        sizes="180px"
                         className="object-cover"
                         priority
                       />
                     )}
                     <span className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(160deg,rgba(255,255,255,0.3)_0%,transparent_35%)]" />
 
-                    {/* Product Name & Price Tag */}
+                    {/* Product Name & Price Tag - slides up when stood up */}
                     <div
-                      className={`absolute inset-x-2 bottom-2 flex items-center justify-between gap-1.5 rounded-xl bg-white/95 px-2.5 py-1.5 text-[#1d1d1f] shadow-sm dark:bg-black/80 dark:text-white transition-opacity duration-500 ${
-                        activeSlide === 1 ? 'opacity-100' : 'opacity-0'
-                      }`}
+                      className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-1.5 rounded-xl bg-white/95 px-2.5 py-1.5 text-[#1d1d1f] shadow-sm dark:bg-black/85 dark:text-white transition-all duration-500"
+                      style={{
+                        opacity: standupProgress,
+                        transform: `translateY(${(1 - standupProgress) * 12}px)`,
+                      }}
                     >
-                      <span className="truncate text-[11.5px] font-semibold">{p.name}</span>
-                      <span className="shrink-0 text-[11.5px] tabular-nums font-medium text-primary">₹{p.price}</span>
+                      <span className="truncate text-[12px] font-semibold">{p.name}</span>
+                      <span className="shrink-0 text-[12px] tabular-nums font-semibold text-primary">₹{p.price}</span>
                     </div>
                   </Link>
                 </div>
@@ -285,13 +269,13 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
           </div>
         </div>
 
-        {/* Bottom CTA */}
+        {/* Bottom CTA Button */}
         <button
           onClick={() => scrollToSlide(2)}
-          className="press mx-auto flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-2/80 backdrop-blur-sm border border-line text-[12.5px] font-medium text-muted hover:text-foreground"
+          className="press mx-auto flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-2/80 backdrop-blur-sm border border-line text-[12.5px] font-medium text-muted hover:text-foreground z-10"
         >
           <span>Our story</span>
-          <ChevronDown className="h-3.5 w-3.5" />
+          <ChevronDown className="h-3.5 w-3.5 animate-bounce" />
         </button>
       </section>
 
@@ -351,7 +335,6 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
       {/* ======================================================== */}
       {shelfProducts.map((product, pIdx) => {
         const slideIndex = shelfStartIndex + pIdx
-        const isCurrentActive = activeSlide === slideIndex
 
         return (
           <section
