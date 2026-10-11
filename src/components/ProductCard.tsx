@@ -7,62 +7,53 @@ import Link from 'next/link'
 
 export function ProductCard({ product, className }: { product: Product; className?: string }) {
   return (
-    <div className={cn(
-      "group bg-card rounded-2xl shadow-sm hover:shadow-xl border border-border overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 flex flex-col h-full relative",
-      className
-    )}>
-      {/* Image Container with zoom effect */}
-      <Link href={`/products/${product.id}`} className="aspect-square bg-accent relative flex items-center justify-center overflow-hidden block">
+    <article className={cn('group flex flex-col', className)}>
+      <Link
+        href={`/products/${product.id}`}
+        className="relative block aspect-[4/5] overflow-hidden rounded-[26px] bg-surface-2 ring-1 ring-black/[0.04] dark:ring-white/[0.06]"
+      >
         {product.image ? (
-          <img 
-            src={product.image} 
-            alt={product.name} 
-            className="object-cover w-full h-full transition-transform duration-500 ease-out group-hover:scale-105" 
+          <img
+            src={product.image}
+            alt={product.name}
+            className={cn(
+              'h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-out)] group-hover:scale-[1.03]',
+              product.isOutOfStock && 'grayscale-[0.6] opacity-80'
+            )}
           />
         ) : (
-          <span className="text-muted-foreground text-sm font-medium">No image</span>
+          <span className="grid h-full w-full place-items-center text-sm text-muted">No photo yet</span>
         )}
-        
-        {/* Availability Badge */}
         {product.isOutOfStock && (
-          <div className="absolute top-3 left-3 bg-red-500/90 backdrop-blur-sm text-white text-[10px] uppercase font-bold tracking-wider px-3 py-1.5 rounded-full shadow-sm z-10">
-            Out of Stock
-          </div>
+          <span className="glass absolute left-3 top-3 rounded-full px-3 py-1 text-[11.5px] font-medium">Sold out</span>
         )}
       </Link>
-      
-      {/* Content */}
-      <div className={cn("p-5 flex flex-col flex-grow gap-2", product.isOutOfStock && "opacity-70")}>
-        <Link href={`/products/${product.id}`} className="hover:underline decoration-primary/30 underline-offset-2">
-          <h3 className="font-semibold text-[17px] leading-tight text-foreground line-clamp-2">{product.name}</h3>
-        </Link>
-        <p className="text-[13px] text-muted-foreground line-clamp-2 mb-2 flex-grow leading-relaxed">
-          {product.description}
-        </p>
-        
-        <div className="mt-auto flex items-center justify-between pt-1">
-          <span className="font-bold text-lg text-primary tracking-tight">₹{product.price}</span>
-          <CartQuantityButton product={product} />
+
+      <div className="flex items-start justify-between gap-4 px-1 pt-4">
+        <div className="min-w-0">
+          <Link href={`/products/${product.id}`}>
+            <h3 className="truncate text-[17px] font-semibold tracking-[-0.02em]">{product.name}</h3>
+          </Link>
+          {product.description && (
+            <p className="mt-1 line-clamp-2 text-[14px] leading-[1.45] text-muted">{product.description}</p>
+          )}
         </div>
+        <span className="shrink-0 pt-0.5 text-[16px] font-medium tabular-nums">₹{product.price}</span>
       </div>
-    </div>
+      <div className="px-1 pt-4">
+        <CartQuantityButton product={product} />
+      </div>
+    </article>
   )
 }
 
 export function ProductCardSkeleton() {
   return (
-    <div className="bg-card rounded-2xl border border-border overflow-hidden flex flex-col h-full animate-pulse">
-      <div className="aspect-square bg-accent/50 w-full" />
-      <div className="p-5 flex flex-col flex-grow gap-3">
-        <div className="h-5 bg-accent/60 rounded-md w-3/4" />
-        <div className="h-3 bg-accent/40 rounded-md w-full mt-1" />
-        <div className="h-3 bg-accent/40 rounded-md w-2/3" />
-        
-        <div className="mt-auto flex items-center justify-between pt-3">
-          <div className="h-6 bg-accent/60 rounded-md w-16" />
-          <div className="h-9 bg-accent/60 rounded-full w-28" />
-        </div>
-      </div>
+    <div className="flex flex-col">
+      <div className="skeleton aspect-[4/5] rounded-[26px]" />
+      <div className="skeleton mt-4 h-4 w-2/3 rounded-md" />
+      <div className="skeleton mt-2 h-3 w-full rounded-md" />
+      <div className="skeleton mt-4 h-9 w-[104px] rounded-full" />
     </div>
   )
 }

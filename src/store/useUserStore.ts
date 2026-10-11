@@ -5,7 +5,6 @@ export interface UserProfile {
   name: string
   phone: string
   address: string
-  isAdmin?: boolean
 }
 
 interface UserStore {
@@ -35,6 +34,13 @@ export const useUserStore = create<UserStore>()(
     {
       name: 'user-storage',
       partialize: (state) => ({ user: state.user }),
+      // Older versions stored an isAdmin flag client-side. It grants nothing now; drop it.
+      merge: (persisted, current) => {
+        const user = (persisted as { user?: UserProfile & { isAdmin?: boolean } } | undefined)?.user
+        if (!user) return current
+        const { name, phone, address } = user
+        return { ...current, user: { name, phone, address } }
+      },
     }
   )
 )

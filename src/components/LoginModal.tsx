@@ -1,137 +1,167 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useUserStore } from '@/store/useUserStore'
 import { X, Loader2 } from 'lucide-react'
-import { db } from '@/lib/firebase'
-import { doc, setDoc, getDoc } from 'firebase/firestore'
+import { saveCustomer } from '@/app/actions'
+import { toast } from 'sonner'
+
+const EASE_DRAWER = [0.32, 0.72, 0, 1] as const
 
 export function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const login = useUserStore((state) => state.login)
-  
+  const reduceMotion = useReducedMotion()
+
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
-  
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isMobile, setIsMobile] = useState(false)
 
-  if (!isOpen) return null
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !loading && onClose()
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [isOpen, loading, onClose])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name || !phone || !address) {
-      setError('Please fill in all fields')
+    const cleanName = name.trim().replace(/\s+/g, ' ')
+    const cleanAddress = address.trim()
+    const digits = phone.replace(/\D/g, '')
+    if (!cleanName || !digits || !cleanAddress) {
+      setError('Please fill in all three.')
+      return
+    }
+    if (digits.length < 10 || digits.length > 13) {
+      setError('Enter a 10-digit mobile number — we need it to reach you on WhatsApp.')
+      return
+    }
+    if (cleanName.length > 80 || cleanAddress.length > 400) {
+      setError('That’s a bit long — please shorten it.')
       return
     }
 
     setLoading(true)
     setError('')
-    
-    try {
-      // Use phone number as the document ID for easy lookup in the database
-      const cleanPhone = phone.replace(/\D/g, '')
-      const userDocRef = doc(db, 'users', cleanPhone)
-      
-      let isAdmin = false
-      const cleanName = name.toLowerCase().trim().replace(/\s+/g, ' ')
-      
-      if (cleanName === 'soham rudrawar' && cleanPhone.includes('7721008644')) {
-        isAdmin = true
-      } else {
-        const adminDocRef = doc(db, 'admins', cleanPhone)
-        const adminSnap = await getDoc(adminDocRef)
-        if (adminSnap.exists()) {
-          isAdmin = true
-        }
-      }
-      
-      // Save or update user in Firestore
-      await setDoc(userDocRef, {
-        name,
-        phone,
-        address,
-        isAdmin,
-        lastLogin: new Date().toISOString()
-      }, { merge: true }) // merge: true ensures we don't overwrite other fields if they exist
+    const profile = { name: cleanName, phone: phone.trim(), address: cleanAddress }
 
-      // Log them in locally
-      login({ name, phone, address, isAdmin })
-      onClose()
-    } catch (err: any) {
-      console.error('Error saving user:', err)
-      setError('Failed to save details. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+    // A copy for the shop. Nice to have; ordering only needs the details on this device.
+    await saveCustomer(profile).catch(() => {})
+
+    login(profile)
+    toast(`Thanks, ${cleanName.split(' ')[0]}.`, { description: 'Your details are saved on this device.' })
+    setLoading(false)
+    onClose()
   }
 
+  const panelMotion = isMobile
+    ? {
+        initial: { transform: 'translateY(100%)' },
+        animate: { transform: 'translateY(0%)' },
+        exit: { transform: 'translateY(100%)', transition: { duration: 0.22, ease: EASE_DRAWER } },
+      }
+    : {
+        initial: { opacity: 0, transform: 'scale(0.96)' },
+        animate: { opacity: 1, transform: 'scale(1)' },
+        exit: { opacity: 0, transform: 'scale(0.97)', transition: { duration: 0.15 } },
+      }
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-card w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center p-6 border-b border-border">
-          <h2 className="text-2xl font-bold text-primary">Your Details</h2>
-          <button onClick={onClose} className="text-foreground/60 hover:text-foreground transition-colors p-1 disabled:opacity-50" disabled={loading}>
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
-          {error && (
-            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100">
-              {error}
-            </div>
-          )}
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="name" className="font-medium text-sm text-foreground/80">Full Name</label>
-            <input 
-              id="name"
-              type="text" 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
-              required
-              className="px-4 py-3 rounded-xl border border-border bg-accent/50 focus:bg-background focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-            />
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            <label htmlFor="phone" className="font-medium text-sm text-foreground/80">WhatsApp Number</label>
-            <input 
-              id="phone"
-              type="tel" 
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="e.g. +91 9999999999"
-              required
-              className="px-4 py-3 rounded-xl border border-border bg-accent/50 focus:bg-background focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-            />
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            <label htmlFor="address" className="font-medium text-sm text-foreground/80">Delivery Address</label>
-            <textarea 
-              id="address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Enter your full address"
-              required
-              rows={3}
-              className="px-4 py-3 rounded-xl border border-border bg-accent/50 focus:bg-background focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none"
-            />
-          </div>
-
-          <button 
-            type="submit"
-            disabled={loading}
-            className="mt-2 w-full flex justify-center items-center gap-2 bg-primary text-primary-foreground py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-70"
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="login-title">
+          <motion.div
+            className="absolute inset-0 bg-black/35 backdrop-blur-[6px] dark:bg-black/60"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.18 } }}
+            transition={{ duration: 0.25 }}
+            onClick={() => !loading && onClose()}
+          />
+          <motion.div
+            {...panelMotion}
+            transition={reduceMotion ? { duration: 0 } : { duration: isMobile ? 0.4 : 0.26, ease: EASE_DRAWER }}
+            className="glass-strong relative w-full max-w-[440px] rounded-t-[30px] p-7 pb-[max(1.75rem,env(safe-area-inset-bottom))] sm:rounded-[30px]"
           >
-            {loading && <Loader2 className="w-5 h-5 animate-spin" />}
-            Save & Continue
-          </button>
-        </form>
-      </div>
-    </div>
+            <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-foreground/15 sm:hidden" aria-hidden />
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="press absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-foreground/[0.06] hover:text-foreground disabled:opacity-40"
+              aria-label="Close"
+            >
+              <X className="h-[18px] w-[18px]" />
+            </button>
+
+            <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-black/5">
+              <img src="/logo.png" alt="" className="h-10 w-10 object-contain" />
+            </span>
+            <h2 id="login-title" className="mt-5 text-[26px] font-semibold leading-[1.1] tracking-[-0.035em]">
+              Where should we <em className="font-serif font-normal italic">send it?</em>
+            </h2>
+            <p className="mt-2 text-[14.5px] leading-[1.5] text-muted">
+              We only use this to deliver your order. No password, nothing to remember.
+            </p>
+
+            <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3" noValidate>
+              <Field label="Full name" htmlFor="name">
+                <input id="name" maxLength={80} className="field" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" placeholder="Your name" />
+              </Field>
+              <Field label="WhatsApp number" htmlFor="phone">
+                <input id="phone" maxLength={18} className="field" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="+91 98765 43210" />
+              </Field>
+              <Field label="Delivery address" htmlFor="address">
+                <textarea id="address" maxLength={400} className="field resize-none" rows={3} value={address} onChange={(e) => setAddress(e.target.value)} autoComplete="street-address" placeholder="House, street, area, city, PIN" />
+              </Field>
+
+              <AnimatePresence initial={false}>
+                {error && (
+                  <motion.p
+                    initial={{ opacity: 0, transform: 'translateY(-4px)' }}
+                    animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-[13.5px] text-danger"
+                    role="alert"
+                  >
+                    {error}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+
+              <button type="submit" disabled={loading} className="press btn-primary mt-2 h-[50px] text-[16px] disabled:opacity-70">
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save and continue'}
+              </button>
+            </form>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+function Field({ label, htmlFor, children }: { label: string; htmlFor: string; children: React.ReactNode }) {
+  return (
+    <label htmlFor={htmlFor} className="flex flex-col gap-1.5">
+      <span className="pl-1 text-[12.5px] font-medium text-muted">{label}</span>
+      {children}
+    </label>
   )
 }

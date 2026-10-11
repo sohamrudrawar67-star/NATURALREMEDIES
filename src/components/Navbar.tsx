@@ -1,235 +1,391 @@
 'use client'
 
 import Link from 'next/link'
-import { ShoppingCart, Menu, Search, User, X } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { Search, ShoppingBag, User, X, Moon, Sun, ArrowRight } from 'lucide-react'
 import { useCartStore } from '@/store/useCartStore'
 import { useUserStore } from '@/store/useUserStore'
-import { useState, useEffect } from 'react'
 import { LoginModal } from '@/components/LoginModal'
-import { useRouter } from 'next/navigation'
 import { getProducts } from '@/lib/products'
 import { Product } from '@/store/useCartStore'
+import { useHydrated } from '@/lib/useHydrated'
+import { setTheme, useIsDark } from '@/lib/theme'
+import { cn } from '@/lib/utils'
+
+const EASE_OUT = [0.23, 1, 0.32, 1] as const
+
+const LINKS = [
+  { href: '/', label: 'Home' },
+  { href: '/products', label: 'Shop' },
+  { href: '/about', label: 'Our story' },
+]
 
 export function Navbar() {
-  const [mounted, setMounted] = useState(false)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [allProducts, setAllProducts] = useState<Product[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const [cartAnimate, setCartAnimate] = useState(false)
+  const pathname = usePathname()
   const router = useRouter()
-  
-  const cartItems = useCartStore((state) => state.items)
+  const hydrated = useHydrated()
+  const reduceMotion = useReducedMotion()
+  const isDark = useIsDark()
+
+  const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [allProducts, setAllProducts] = useState<Product[]>([])
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const cartCount = useCartStore((s) => s.items.reduce((acc, i) => acc + i.quantity, 0))
   const { user, isLoginModalOpen, openLoginModal, closeLoginModal } = useUserStore()
-  
-  // To prevent hydration errors with Zustand persist
+
   useEffect(() => {
-    setMounted(true)
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const cartItemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0)
+  // Close overlays on navigation (adjusting state during render, not in an effect)
+  const [lastPath, setLastPath] = useState(pathname)
+  if (pathname !== lastPath) {
+    setLastPath(pathname)
+    setMenuOpen(false)
+    setSearchOpen(false)
+    setQuery('')
+  }
 
-  // Animate cart when items change
+  const openSearch = async () => {
+    setMenuOpen(false)
+    setSearchOpen(true)
+    requestAnimationFrame(() => inputRef.current?.focus())
+    if (allProducts.length === 0) setAllProducts(await getProducts())
+  }
+
+  // "/" opens search, Esc closes. Keyboard-triggered, so no animation on these paths.
   useEffect(() => {
-    if (cartItemCount > 0) {
-      setCartAnimate(true)
-      const timer = setTimeout(() => setCartAnimate(false), 300)
-      return () => clearTimeout(timer)
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement
+      const typing = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA'
+      if (e.key === '/' && !typing) {
+        e.preventDefault()
+        openSearch()
+      }
+      if (e.key === 'Escape') {
+        setSearchOpen(false)
+        setMenuOpen(false)
+      }
     }
-  }, [cartItemCount])
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
 
-  const handleSearch = (e: React.FormEvent) => {
+  const submitSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`)
-      setIsSearchOpen(false)
-      setSearchQuery('')
-    }
+    const q = query.trim()
+    if (!q) return
+    router.push(`/products?q=${encodeURIComponent(q)}`)
   }
 
-  const handleOpenSearch = async () => {
-    setIsSearchOpen(true)
-    if (allProducts.length === 0) {
-      setIsSearching(true)
-      const fetched = await getProducts()
-      setAllProducts(fetched)
-      setIsSearching(false)
-    }
-  }
-
-  const matchedProducts = searchQuery.trim() 
-    ? allProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase().trim())) 
+  const matches = query.trim()
+    ? allProducts.filter((p) => p.name.toLowerCase().includes(query.toLowerCase().trim())).slice(0, 5)
     : []
+
+  const links = LINKS
+  const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href))
+  const panelOpen = searchOpen || menuOpen
 
   return (
     <>
-      <nav className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-border/50 py-1' : 'bg-white py-2'}`}>
-        <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between relative">
-          {/* Mobile Menu & Logo */}
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden text-foreground hover:text-primary transition-colors"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary tracking-tight">
-              <img src="/logo.png" alt="Natural Remedies Logo" className="w-10 h-10 object-contain" />
-              Natural Remedies
-            </Link>
-          </div>
+      {/* Click-away scrim for the search / menu panels */}
+      <AnimatePresence>
+        {panelOpen && (
+          <motion.div
+            key="scrim"
+            className="fixed inset-0 z-40 bg-black/20 dark:bg-black/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.15 } }}
+            transition={{ duration: 0.2 }}
+            onClick={() => {
+              setSearchOpen(false)
+              setMenuOpen(false)
+            }}
+          />
+        )}
+      </AnimatePresence>
 
-          {/* Search Bar Overlay */}
-          {isSearchOpen ? (
-            <div className="absolute top-0 left-0 right-0 bg-white flex flex-col z-20 shadow-md border-b border-border">
-              <div className="h-16 px-4 flex items-center">
-                <form onSubmit={handleSearch} className="flex-1 flex items-center max-w-2xl mx-auto gap-2">
-                  <Search className="w-5 h-5 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search products..."
-                    className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground px-2 py-2 text-lg focus:ring-0"
-                    autoFocus
-                  />
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      setIsSearchOpen(false)
-                      setSearchQuery('')
-                    }}
-                    className="p-2 text-foreground/60 hover:text-foreground transition-colors"
+      <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-3 pt-3 sm:pt-4 pointer-events-none">
+        <div className="w-full max-w-[1040px] pointer-events-auto">
+          <nav
+            className={cn(
+              'relative flex h-14 items-center justify-between rounded-[20px] pl-2.5 pr-2 transition-[background-color,box-shadow] duration-300',
+              scrolled || panelOpen ? 'glass-strong' : 'glass'
+            )}
+            aria-label="Main"
+          >
+            <Link href="/" className="press flex items-center gap-2.5 rounded-full pr-2" aria-label="Natural Remedies home">
+              <span className="relative grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-black/5">
+                <img src="/logo.png" alt="" className="h-8 w-8 object-contain" />
+              </span>
+              <span className="whitespace-nowrap text-[15px] font-semibold tracking-[-0.02em]">Natural Remedies</span>
+            </Link>
+
+            <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex">
+              {links.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    'press relative rounded-full px-4 py-1.5 text-[13.5px] font-medium tracking-[-0.01em]',
+                    isActive(link.href) ? 'text-foreground' : 'text-muted hover:text-foreground'
+                  )}
+                >
+                  {isActive(link.href) && (
+                    <motion.span
+                      layoutId="nav-pill"
+                      className="absolute inset-0 -z-10 rounded-full bg-foreground/[0.07] dark:bg-white/[0.1]"
+                      transition={reduceMotion ? { duration: 0 } : { type: 'spring', duration: 0.45, bounce: 0.15 }}
+                    />
+                  )}
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-0.5">
+              <IconButton label="Search (press /)" onClick={() => (searchOpen ? setSearchOpen(false) : openSearch())}>
+                <Search className="h-[18px] w-[18px]" strokeWidth={1.75} />
+              </IconButton>
+
+              <IconButton className="hidden md:grid" label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} onClick={() => setTheme(!isDark)}>
+                <AnimatePresence initial={false} mode="popLayout">
+                  <motion.span
+                    key={hydrated && isDark ? 'moon' : 'sun'}
+                    initial={{ opacity: 0, scale: 0.6, filter: 'blur(4px)', rotate: -45 }}
+                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)', rotate: 0 }}
+                    exit={{ opacity: 0, scale: 0.6, filter: 'blur(4px)', rotate: 45 }}
+                    transition={{ duration: 0.25, ease: EASE_OUT }}
+                    className="grid place-items-center"
                   >
-                    <X className="w-5 h-5" />
+                    {hydrated && isDark ? (
+                      <Moon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                    ) : (
+                      <Sun className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                    )}
+                  </motion.span>
+                </AnimatePresence>
+              </IconButton>
+
+              {hydrated && user ? (
+                <IconLink href="/profile" label="Your profile">
+                  <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+                    {user.name.trim().charAt(0).toUpperCase()}
+                  </span>
+                </IconLink>
+              ) : (
+                <IconButton label="Log in" onClick={openLoginModal}>
+                  <User className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                </IconButton>
+              )}
+
+              <IconLink href="/cart" label={`Basket, ${cartCount} items`}>
+                <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                <AnimatePresence initial={false}>
+                  {hydrated && cartCount > 0 && (
+                    <motion.span
+                      initial={{ opacity: 0, scale: 0.6 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.6 }}
+                      transition={{ duration: 0.2, ease: EASE_OUT }}
+                      className="absolute right-0.5 top-0.5 flex h-[17px] min-w-[17px] items-center justify-center overflow-hidden rounded-full bg-primary px-1 text-[10px] font-semibold tabular-nums text-primary-foreground"
+                    >
+                      <AnimatePresence initial={false} mode="popLayout">
+                        <motion.span
+                          key={cartCount}
+                          initial={{ transform: 'translateY(100%)', opacity: 0 }}
+                          animate={{ transform: 'translateY(0%)', opacity: 1 }}
+                          exit={{ transform: 'translateY(-100%)', opacity: 0 }}
+                          transition={{ duration: 0.2, ease: EASE_OUT }}
+                        >
+                          {cartCount}
+                        </motion.span>
+                      </AnimatePresence>
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </IconLink>
+
+              <button
+                className="press ml-0.5 grid h-10 w-10 place-items-center rounded-full md:hidden"
+                onClick={() => {
+                  setSearchOpen(false)
+                  setMenuOpen((v) => !v)
+                }}
+                aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={menuOpen}
+              >
+                <span className="relative block h-3 w-[18px]">
+                  <span
+                    className={cn(
+                      'absolute left-0 top-0 h-[1.5px] w-full rounded bg-foreground transition-transform duration-300 ease-[var(--ease-out)]',
+                      menuOpen && 'translate-y-[5px] rotate-45'
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      'absolute bottom-0 left-0 h-[1.5px] w-full rounded bg-foreground transition-transform duration-300 ease-[var(--ease-out)]',
+                      menuOpen && '-translate-y-[5px] -rotate-45'
+                    )}
+                  />
+                </span>
+              </button>
+            </div>
+          </nav>
+
+          {/* Search panel — grows from the navbar */}
+          <AnimatePresence>
+            {searchOpen && (
+              <motion.div
+                key="search"
+                initial={{ opacity: 0, transform: 'translateY(-6px) scale(0.98)' }}
+                animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
+                exit={{ opacity: 0, transform: 'translateY(-6px) scale(0.98)', transition: { duration: 0.15 } }}
+                transition={{ duration: 0.22, ease: EASE_OUT }}
+                style={{ transformOrigin: 'top center' }}
+                className="glass-strong mt-2 overflow-hidden rounded-[20px]"
+              >
+                <form onSubmit={submitSearch} className="flex items-center gap-3 px-5 py-4">
+                  <Search className="h-5 w-5 text-muted" strokeWidth={1.75} />
+                  <input
+                    ref={inputRef}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search soap, oil, shampoo…"
+                    className="flex-1 bg-transparent text-[17px] tracking-[-0.01em] outline-none placeholder:text-subtle"
+                    aria-label="Search products"
+                  />
+                  <button type="button" onClick={() => setSearchOpen(false)} className="press grid h-8 w-8 place-items-center rounded-full text-muted hover:text-foreground" aria-label="Close search">
+                    <X className="h-4 w-4" />
                   </button>
                 </form>
-              </div>
-
-              {/* Live Search Results */}
-              {searchQuery.trim().length > 0 && (
-                <div className="w-full max-w-2xl mx-auto px-4 pb-4 max-h-[60vh] overflow-y-auto">
-                  {isSearching ? (
-                    <div className="text-center py-4 text-muted-foreground">Searching...</div>
-                  ) : matchedProducts.length > 0 ? (
-                    <div className="flex flex-col gap-2">
-                      {matchedProducts.map(product => (
-                        <Link 
-                          key={product.id} 
-                          href={`/products/${product.id}`}
-                          onClick={() => {
-                            setIsSearchOpen(false)
-                            setSearchQuery('')
-                          }}
-                          className="flex items-center gap-4 p-2 hover:bg-accent rounded-xl transition-colors"
+                {query.trim() && (
+                  <div className="border-t border-line px-2 py-2">
+                    {matches.length > 0 ? (
+                      matches.map((p) => (
+                        <Link
+                          key={p.id}
+                          href={`/products/${p.id}`}
+                          className="press flex items-center gap-3 rounded-2xl px-3 py-2 hover:bg-foreground/[0.04]"
                         >
-                          <div className="w-12 h-12 bg-secondary rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
-                            {product.image ? (
-                              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <span className="text-[10px] text-muted-foreground">No img</span>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-primary">{product.name}</h4>
-                            <p className="text-sm font-bold">₹{product.price}</p>
-                          </div>
+                          <span className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-surface-2">
+                            {p.image && <img src={p.image} alt="" className="h-full w-full object-cover" />}
+                          </span>
+                          <span className="flex-1 text-[15px] font-medium">{p.name}</span>
+                          <span className="text-[14px] tabular-nums text-muted">₹{p.price}</span>
                         </Link>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 text-muted-foreground">No products found for "{searchQuery}"</div>
-                  )}
-                </div>
-              )}
-            </div>
-          ) : (
-            /* Desktop Navigation */
-            <div className="hidden lg:flex items-center gap-8 font-medium">
-              <Link href="/" className="relative text-foreground/80 hover:text-primary transition-colors group">
-                Home
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-              </Link>
-              <Link href="/products" className="relative text-foreground/80 hover:text-primary transition-colors group">
-                Products
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-              </Link>
-              <Link href="/about" className="relative text-foreground/80 hover:text-primary transition-colors group">
-                About Us
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-              </Link>
-              {mounted && user?.isAdmin && (
-                <Link href="/admin" className="relative text-red-500 hover:text-red-600 transition-colors group">
-                  Admin Dashboard
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-500 transition-all duration-300 group-hover:w-full"></span>
-                </Link>
-              )}
-            </div>
-          )}
+                      ))
+                    ) : (
+                      <p className="px-3 py-3 text-[14px] text-muted">Nothing called “{query.trim()}” yet.</p>
+                    )}
+                  </div>
+                )}
+                {!query.trim() && (
+                  <div className="border-t border-line px-5 py-3 text-[13px] text-subtle">
+                    Tip: press <kbd className="rounded-md border border-line-strong px-1.5 py-0.5 font-mono text-[11px]">/</kbd> anywhere to search.
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Actions */}
-          <div className="flex items-center gap-4 sm:gap-6">
-            <button 
-              onClick={handleOpenSearch}
-              className="text-foreground hover:text-primary transition-colors"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-            
-            {mounted && user ? (
-              <Link href="/profile" className="text-foreground hover:text-primary transition-colors flex items-center gap-2">
-                <User className="w-5 h-5" />
-              </Link>
-            ) : (
-              <button 
-                onClick={openLoginModal}
-                className="text-foreground hover:text-primary transition-colors flex items-center gap-2 font-medium"
+          {/* Mobile menu */}
+          <AnimatePresence>
+            {menuOpen && (
+              <motion.div
+                key="menu"
+                initial={{ opacity: 0, transform: 'translateY(-6px) scale(0.98)' }}
+                animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
+                exit={{ opacity: 0, transform: 'translateY(-6px) scale(0.98)', transition: { duration: 0.15 } }}
+                transition={{ duration: 0.25, ease: EASE_OUT }}
+                style={{ transformOrigin: 'top right' }}
+                className="glass-strong mt-2 rounded-[20px] p-3 md:hidden"
               >
-                <User className="w-5 h-5" />
-                <span className="hidden sm:inline">Login</span>
-              </button>
+                {links.map((link, i) => (
+                  <motion.div
+                    key={link.href}
+                    initial={{ opacity: 0, transform: 'translateY(6px)' }}
+                    animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                    transition={{ duration: 0.3, delay: 0.04 + i * 0.035, ease: EASE_OUT }}
+                  >
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        'press flex items-center justify-between rounded-2xl px-4 py-3.5 text-[22px] font-medium tracking-[-0.02em]',
+                        isActive(link.href) ? 'bg-foreground/[0.05]' : ''
+                      )}
+                    >
+                      {link.label}
+                      <ArrowRight className="h-4 w-4 text-subtle" />
+                    </Link>
+                  </motion.div>
+                ))}
+                <motion.button
+                  initial={{ opacity: 0, transform: 'translateY(6px)' }}
+                  animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                  transition={{ duration: 0.3, delay: 0.04 + links.length * 0.035, ease: EASE_OUT }}
+                  onClick={() => setTheme(!isDark)}
+                  className="press mt-1 flex w-full items-center justify-between rounded-2xl border-t border-line px-4 py-3.5 text-[15px] text-muted"
+                >
+                  {isDark ? 'Light mode' : 'Dark mode'}
+                  {isDark ? <Sun className="h-4 w-4" strokeWidth={1.75} /> : <Moon className="h-4 w-4" strokeWidth={1.75} />}
+                </motion.button>
+              </motion.div>
             )}
-
-            <Link href="/cart" className="relative text-foreground hover:text-primary transition-transform hover:scale-105 flex items-center p-1">
-              <ShoppingCart className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform ${cartAnimate ? 'scale-125 text-primary' : ''}`} />
-              {mounted && cartItemCount > 0 && (
-                <span className={`absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center transition-transform ${cartAnimate ? 'scale-110' : ''}`}>
-                  {cartItemCount}
-                </span>
-              )}
-            </Link>
-          </div>
+          </AnimatePresence>
         </div>
-
-        {/* Mobile Menu Dropdown */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden absolute top-16 left-0 right-0 bg-white border-b border-border shadow-lg p-4 flex flex-col">
-            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-foreground hover:text-primary font-medium py-3 border-b border-border/50">
-              Home
-            </Link>
-            <Link href="/products" onClick={() => setIsMobileMenuOpen(false)} className="text-foreground hover:text-primary font-medium py-3 border-b border-border/50">
-              Products
-            </Link>
-            <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-foreground hover:text-primary font-medium py-3 border-b border-border/50">
-              About Us
-            </Link>
-            {mounted && user?.isAdmin && (
-              <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-red-500 hover:text-red-600 font-medium py-3">
-                Admin Dashboard
-              </Link>
-            )}
-          </div>
-        )}
-      </nav>
+      </header>
 
       <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
     </>
+  )
+}
+
+function IconButton({
+  label,
+  onClick,
+  className,
+  children,
+}: {
+  label: string
+  onClick: () => void
+  className?: string
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className={cn(
+        'press relative grid h-10 w-10 place-items-center rounded-full text-foreground/80 hover:bg-foreground/[0.06] hover:text-foreground',
+        className
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
+function IconLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      title={label}
+      className="press relative grid h-10 w-10 place-items-center rounded-full text-foreground/80 hover:bg-foreground/[0.06] hover:text-foreground"
+    >
+      {children}
+    </Link>
   )
 }

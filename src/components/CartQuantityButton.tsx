@@ -1,9 +1,12 @@
 'use client'
 
 import { Product, useCartStore } from '@/store/useCartStore'
-import { Plus, Minus, Check } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Plus, Minus } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useHydrated } from '@/lib/useHydrated'
 
 interface CartQuantityButtonProps {
   product: Product
@@ -11,113 +14,110 @@ interface CartQuantityButtonProps {
   large?: boolean
 }
 
+const EASE_OUT = [0.23, 1, 0.32, 1] as const
+
+/**
+ * "Add" morphs into a stepper in place. Same footprint in both states so nothing
+ * around it shifts; the swap is a blurred crossfade so it reads as one object changing.
+ */
 export function CartQuantityButton({ product, className, large = false }: CartQuantityButtonProps) {
-  const [mounted, setMounted] = useState(false)
-  const [justAdded, setJustAdded] = useState(false)
-  const { items, addItem, updateQuantity, removeItem } = useCartStore()
+  const hydrated = useHydrated()
+  const router = useRouter()
+  const quantity = useCartStore((s) => s.items.find((i) => i.id === product.id)?.quantity ?? 0)
+  const { addItem, updateQuantity, removeItem } = useCartStore()
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const size = large ? 'h-[52px] text-[16px] w-full sm:w-[260px]' : 'h-9 text-[13.5px] w-[104px]'
 
-  if (!mounted) {
-    return (
-      <button className={cn(
-        "bg-primary text-primary-foreground rounded-full font-medium transition-colors opacity-0",
-        large ? "px-8 py-4 font-bold text-lg" : "px-4 py-2 text-sm",
-        className
-      )}>
-        Loading...
-      </button>
-    )
+  if (!hydrated) {
+    return <div className={cn('rounded-full bg-surface-2', size, className)} aria-hidden />
   }
 
   if (product.isOutOfStock) {
     return (
-      <button
-        disabled
-        className={cn(
-          "bg-gray-200 text-gray-500 rounded-full font-medium cursor-not-allowed",
-          large ? "px-8 py-4 font-bold text-lg" : "px-4 py-2 text-sm",
-          className
-        )}
-      >
-        Out of Stock
+      <button disabled className={cn('rounded-full bg-surface-2 font-medium text-subtle cursor-not-allowed', size, className)}>
+        Sold out
       </button>
     )
   }
 
-  const cartItem = items.find((item) => item.id === product.id)
-  const quantity = cartItem?.quantity || 0
-
-  const handleAdd = () => {
+  const add = () => {
     addItem(product)
-    setJustAdded(true)
-    setTimeout(() => setJustAdded(false), 2000)
+    toast(`${product.name} added`, {
+      description: 'It’s waiting in your basket.',
+      action: { label: 'View basket', onClick: () => router.push('/cart') },
+      duration: 2600,
+    })
   }
 
-  if (quantity === 0) {
-    return (
-      <button
-        onClick={handleAdd}
-        className={cn(
-          "bg-primary text-primary-foreground rounded-full font-medium transition-all duration-300 flex items-center justify-center gap-1.5",
-          "hover:bg-primary/90 hover:-translate-y-0.5 hover:shadow-md active:scale-95",
-          justAdded ? "bg-green-600 hover:bg-green-600 text-white" : "",
-          large ? "px-8 py-4 font-bold text-lg shadow-sm w-full max-w-sm" : "px-4 py-2 text-sm w-28",
-          className
-        )}
-      >
-        {justAdded ? (
-          <>
-            <Check className={large ? "w-5 h-5" : "w-4 h-4"} />
-            {large ? "Added to Cart" : "Added"}
-          </>
-        ) : (
-          large ? `Add to Cart - ₹${product.price}` : 'Add to Cart'
-        )}
-      </button>
-    )
-  }
+  const decrement = () => (quantity === 1 ? removeItem(product.id) : updateQuantity(product.id, quantity - 1))
+  const increment = () => updateQuantity(product.id, quantity + 1)
 
-  const handleDecrement = () => {
-    if (quantity === 1) {
-      removeItem(product.id)
-    } else {
-      updateQuantity(product.id, quantity - 1)
-    }
-  }
-
-  const handleIncrement = () => {
-    updateQuantity(product.id, quantity + 1)
+  const swap = {
+    initial: { opacity: 0, filter: 'blur(4px)', transform: 'scale(0.96)' },
+    animate: { opacity: 1, filter: 'blur(0px)', transform: 'scale(1)' },
+    exit: { opacity: 0, filter: 'blur(4px)', transform: 'scale(0.96)' },
+    transition: { duration: 0.2, ease: EASE_OUT },
   }
 
   return (
-    <div className={cn(
-      "bg-secondary text-secondary-foreground rounded-full font-bold flex items-center justify-between border border-primary/10",
-      large ? "px-4 py-3 w-48 shadow-sm" : "px-2 py-1.5 w-28",
-      className
-    )}>
-      <button 
-        onClick={handleDecrement}
-        className="hover:bg-primary/20 hover:text-primary rounded-full p-1 transition-colors active:scale-90 flex items-center justify-center"
-      >
-        <Minus className={large ? "w-5 h-5" : "w-4 h-4"} />
-      </button>
-      
-      <span className={cn(
-        "tabular-nums font-bold",
-        large ? "text-lg" : "text-sm"
-      )}>
-        {quantity}
-      </span>
-      
-      <button 
-        onClick={handleIncrement}
-        className="hover:bg-primary/20 hover:text-primary rounded-full p-1 transition-colors active:scale-90 flex items-center justify-center"
-      >
-        <Plus className={large ? "w-5 h-5" : "w-4 h-4"} />
-      </button>
+    <div className={cn('relative', size, className)}>
+      <AnimatePresence initial={false} mode="popLayout">
+        {quantity === 0 ? (
+          <motion.button
+            key="add"
+            {...swap}
+            onClick={add}
+            className="press btn-primary absolute inset-0 h-full w-full"
+          >
+            {large ? (
+              <>
+                Add to basket <span className="opacity-60">·</span> <span className="tabular-nums">₹{product.price}</span>
+              </>
+            ) : (
+              <>
+                <Plus className="h-3.5 w-3.5" strokeWidth={2.25} /> Add
+              </>
+            )}
+          </motion.button>
+        ) : (
+          <motion.div
+            key="stepper"
+            {...swap}
+            className="absolute inset-0 flex items-center justify-between rounded-full bg-tint px-1 text-tint-foreground"
+          >
+            <button
+              onClick={decrement}
+              aria-label={quantity === 1 ? 'Remove from basket' : 'Decrease quantity'}
+              className={cn('press grid place-items-center rounded-full hover:bg-primary/15', large ? 'h-11 w-11' : 'h-7 w-7')}
+            >
+              <Minus className={large ? 'h-4 w-4' : 'h-3.5 w-3.5'} strokeWidth={2.25} />
+            </button>
+            <span className="relative overflow-hidden font-semibold tabular-nums">
+              {/* Digit roll — the number you changed is the thing that moves */}
+              <AnimatePresence initial={false} mode="popLayout">
+                <motion.span
+                  key={quantity}
+                  initial={{ transform: 'translateY(70%)', opacity: 0 }}
+                  animate={{ transform: 'translateY(0%)', opacity: 1 }}
+                  exit={{ transform: 'translateY(-70%)', opacity: 0 }}
+                  transition={{ duration: 0.18, ease: EASE_OUT }}
+                  className="inline-block"
+                >
+                  {quantity}
+                </motion.span>
+              </AnimatePresence>
+              {large && <span className="ml-1 font-normal opacity-70">in basket</span>}
+            </span>
+            <button
+              onClick={increment}
+              aria-label="Increase quantity"
+              className={cn('press grid place-items-center rounded-full hover:bg-primary/15', large ? 'h-11 w-11' : 'h-7 w-7')}
+            >
+              <Plus className={large ? 'h-4 w-4' : 'h-3.5 w-3.5'} strokeWidth={2.25} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,54 +1,278 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------- Tokens ---------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --primary: #2d6a4f;
+  --background: #fbfbf9;
+  --foreground: #1d1d1f;
+  --surface: #ffffff;
+  --surface-2: #f2f2ef;
+  --muted: #6e6e73;
+  --subtle: #8e8e93;
+  --line: rgba(0, 0, 0, 0.08);
+  --line-strong: rgba(0, 0, 0, 0.14);
+
+  --primary: #4a7424;
+  --primary-hover: #3e631d;
   --primary-foreground: #ffffff;
-  --secondary: #d8f3dc;
-  --secondary-foreground: #1b4332;
-  --accent: #f3f4f6;
-  --accent-foreground: #111827;
-  --card: #ffffff;
-  --card-foreground: #171717;
-  --border: #e5e7eb;
+  --tint: #eef3e6;
+  --tint-foreground: #2f4a16;
+
+  --danger: #c4402f;
+
+  --glass: rgba(255, 255, 255, 0.66);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  --glass-line: rgba(255, 255, 255, 0.7);
+  --glass-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 12px 40px -12px rgba(0, 0, 0, 0.14);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  color-scheme: light;
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #f5f5f7;
+  --surface: #111112;
+  --surface-2: #1c1c1e;
+  --muted: #a1a1a6;
+  --subtle: #6e6e73;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.16);
+
+  --primary: #a3cf72;
+  --primary-hover: #b6dc8c;
+  --primary-foreground: #0e1806;
+  --tint: #18220f;
+  --tint-foreground: #c5e3a3;
+
+  --danger: #ff7b6b;
+
+  --glass: rgba(28, 28, 30, 0.58);
+  --glass-strong: rgba(28, 28, 30, 0.8);
+  --glass-line: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 16px 48px -12px rgba(0, 0, 0, 0.7);
+
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-border: var(--border);
+  --color-tint: var(--tint);
+  --color-tint-foreground: var(--tint-foreground);
+  --color-danger: var(--danger);
+
+  /* legacy names still used in a few places */
+  --color-card: var(--surface);
+  --color-border: var(--line);
+  --color-accent: var(--surface-2);
+  --color-secondary: var(--tint);
+  --color-muted-foreground: var(--muted);
+
   --font-sans: var(--font-geist-sans);
+  --font-serif: var(--font-serif);
   --font-mono: var(--font-geist-mono);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ---------- Base ---------- */
+html {
+  background: var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  @apply antialiased;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-@keyframes fadeInUp {
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* Theme switch: suppress transitions for the one frame the class flips */
+.theme-switching,
+.theme-switching * {
+  transition: none !important;
+}
+
+/* ---------- Components ---------- */
+
+/* Frosted material, Apple-style: blur + saturation + hairline edge */
+.glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-strong {
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Pressable: instant feedback on press, never on release */
+.press {
+  transition: transform 160ms var(--ease-out), background-color 160ms ease, color 160ms ease,
+    opacity 160ms ease;
+}
+.press:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--foreground);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    background: var(--primary-hover);
+  }
+  .btn-secondary:hover {
+    background: var(--line-strong);
+  }
+}
+
+.field {
+  width: 100%;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  padding: 0.8rem 1rem;
+  font-size: 15px;
+  color: var(--foreground);
+  outline: none;
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+.field::placeholder {
+  color: var(--subtle);
+}
+.field:focus {
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--primary);
+  font-weight: 500;
+}
+.link-arrow svg {
+  transition: transform 200ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .link-arrow:hover svg {
+    transform: translateX(3px);
+  }
+}
+
+/* Grain: kills banding on big gradients, gives photos a printed feel */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Entry used by page shells — CSS so it runs off the main thread */
+.enter {
+  animation: enter 520ms var(--ease-out) both;
+}
+@keyframes enter {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
+    filter: blur(4px);
   }
+}
+
+@keyframes shimmer {
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: translateX(100%);
   }
 }
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.7s ease-out forwards;
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--foreground) 5%, transparent), transparent);
+  animation: shimmer 1.4s linear infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .enter {
+    animation: fade 200ms ease both;
+  }
+  .skeleton::after {
+    animation: none;
+  }
+  .press:active:not(:disabled) {
+    transform: none;
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
