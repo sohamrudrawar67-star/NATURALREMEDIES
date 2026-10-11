@@ -6,6 +6,7 @@ import { useRef } from 'react'
 import { motion, useReducedMotion, useScroll, useSpring, useTransform, MotionValue } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
 import { Product, productHref } from '@/store/useCartStore'
+import { CartQuantityButton } from '@/components/CartQuantityButton'
 import { HeroGreeting } from '@/components/HeroGreeting'
 import { useCoarsePointer, useViewport } from '@/lib/useViewport'
 
@@ -31,11 +32,12 @@ export function HeroScroll({ products }: { products: Product[] }) {
   const smooth = useSpring(scrollYProgress, { stiffness: 280, damping: 36, mass: 0.18, restDelta: 0.0005 })
   const progress = reduceMotion ? scrollYProgress : smooth
 
-  const byWidth = mobile ? Math.min(w * 0.48, 220) : Math.min(Math.max(w * 0.22, 200), 340)
-  const cardW = Math.min(byWidth, (vh * (mobile ? 0.4 : 0.46)) / 1.25)
-
   const withImages = products.filter((p) => p.image)
-  const ordered = withImages.slice(0, 3).sort((a, b) => a.price - b.price)
+  const ordered = (withImages.length > 0 ? withImages : products).sort((a, b) => a.price - b.price)
+
+  const maxSpan = ready ? (w * 0.9) / Math.max(ordered.length, 3) : 280
+  const byWidth = mobile ? Math.min(w * 0.48, 220) : Math.min(Math.max(w * 0.22, 190), 340)
+  const cardW = Math.min(byWidth, (vh * (mobile ? 0.4 : 0.46)) / 1.25, maxSpan)
 
   const headlineOpacity = useTransform(progress, [0.03, mobile ? 0.38 : 0.3], [1, 0])
   const headlineTransform = useTransform(progress, (v) => {
@@ -175,14 +177,17 @@ function HeroCard({
   mobile: boolean
   reduceMotion: boolean
 }) {
-  const k = index - (count - 1) / 2 // -1, 0, 1
-  const spread = mobile ? 0.62 : 1.12
+  const k = index - (count - 1) / 2
+  const spread = mobile ? 0.62 : Math.min(1.12, 3.2 / Math.max(count, 3))
   // A hand-placed look on the table: each card a little off, none perfectly square
-  const scatter = [
+  const scatterList = [
     { rz: -9, x: -0.05, y: 10 },
     { rz: 2, x: 0, y: -6 },
     { rz: 11, x: 0.06, y: 14 },
-  ][index % 3]
+    { rz: -4, x: -0.02, y: 6 },
+    { rz: 7, x: 0.03, y: -8 },
+  ]
+  const scatter = scatterList[index % scatterList.length]
 
   const transform = useTransform(progress, (v) => {
     const r = reduceMotion ? 1 : easeInOut(range(v, 0.06, 0.58))
@@ -212,25 +217,33 @@ function HeroCard({
           transition={{ duration: 0.8, delay: 0.25 + index * 0.08, ease: [0.23, 1, 0.32, 1] }}
           className="h-full w-full"
         >
-          <Link
-            href={productHref(product)}
+          <div
             className="group relative block h-full w-full overflow-hidden rounded-[22px] bg-surface-2 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.55)] ring-1 ring-black/5 dark:ring-white/10 sm:rounded-[28px]"
-            tabIndex={-1}
           >
-            {product.image && (
-              <Image src={product.image} alt={product.name} fill preload sizes="(max-width: 768px) 50vw, 340px" className="object-cover" draggable={false} />
-            )}
-            {/* Specular edge — the glass-case catch light */}
-            <span aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(160deg,rgba(255,255,255,0.28)_0%,transparent_32%,transparent_70%,rgba(0,0,0,0.18)_100%)]" />
-            {/* Solid, not backdrop-blurred: backdrop-filter inside 3D transforms flickers on iOS */}
-            <motion.span
+            <Link href={productHref(product)} className="absolute inset-0 z-0">
+              {product.image && (
+                <Image src={product.image} alt={product.name} fill preload sizes="(max-width: 768px) 50vw, 340px" className="object-cover" draggable={false} />
+              )}
+              {/* Specular edge — the glass-case catch light */}
+              <span aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(160deg,rgba(255,255,255,0.28)_0%,transparent_32%,transparent_70%,rgba(0,0,0,0.18)_100%)]" />
+            </Link>
+
+            {/* Solid, interactive card bar in Beat 2 */}
+            <motion.div
               style={{ opacity: labelOpacity }}
-              className="absolute inset-x-2.5 bottom-2.5 flex items-center justify-between gap-2 rounded-2xl bg-white/90 px-3.5 py-2.5 text-[#1d1d1f] shadow-sm dark:bg-black/65 dark:text-white sm:inset-x-3 sm:bottom-3"
+              className="absolute inset-x-2 bottom-2 z-10 flex items-center justify-between gap-2 rounded-2xl bg-white/95 px-3 py-2 text-[#1d1d1f] shadow-lg dark:bg-black/85 dark:text-white sm:inset-x-3 sm:bottom-3"
             >
-              <span className="truncate text-[12.5px] font-medium tracking-[-0.01em] sm:text-[14px]">{product.name}</span>
-              <span className="shrink-0 text-[12.5px] tabular-nums opacity-60 sm:text-[14px]">₹{product.price}</span>
-            </motion.span>
-          </Link>
+              <div className="min-w-0 flex-1">
+                <Link href={productHref(product)} className="truncate block text-[13px] font-semibold tracking-[-0.01em] hover:underline sm:text-[14px]">
+                  {product.name}
+                </Link>
+                <span className="text-[12px] font-bold text-primary tabular-nums sm:text-[13.5px]">₹{product.price}</span>
+              </div>
+              <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                <CartQuantityButton product={product} />
+              </div>
+            </motion.div>
+          </div>
         </motion.div>
       </motion.div>
     </div>

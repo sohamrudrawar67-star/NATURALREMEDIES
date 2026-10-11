@@ -24,28 +24,22 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
 
   // Products
   const withImages = products.filter((p) => p.image)
-  const heroProducts = withImages.slice(0, 3).sort((a, b) => a.price - b.price)
-  const shelfProducts = products.length > 0 ? products : heroProducts
+  const heroProducts = (withImages.length > 0 ? withImages : products).sort((a, b) => a.price - b.price)
   const heroJarImage = products.length > 0 ? [...products].sort((a, b) => b.price - a.price)[0]?.image : undefined
 
   // Second slide (Beat 2) lateral scroll state
-  const [beat2ActiveIndex, setBeat2ActiveIndex] = useState(1) // center card
+  const [beat2ActiveIndex, setBeat2ActiveIndex] = useState(0)
   const touchStartX = useRef(0)
   const touchDeltaX = useRef(0)
 
-  // Shelf horizontal scroll state
-  const shelfScrollRef = useRef<HTMLDivElement>(null)
-  const [activeShelfIndex, setActiveShelfIndex] = useState(0)
-
-  // Total vertical slides = 7 fixed slides:
+  // Total vertical slides = 6 fixed slides:
   // Slide 0: Hero Intro (Clean text & buttons)
-  // Slide 1: 3D Product Standup Beat (With lateral scrolling!)
+  // Slide 1: 3D Product Standup Beat (With lateral scrolling & Add to basket!)
   // Slide 2: Statement Reveal (Words light up)
-  // Slide 3: The Shelf (Single slide with horizontal sideways scroll for all products)
-  // Slide 4: How To Order
-  // Slide 5: FAQ
-  // Slide 6: Closing Frame & Footer
-  const totalSlides = 7
+  // Slide 3: How To Order
+  // Slide 4: FAQ
+  // Slide 5: Closing Frame & Footer
+  const totalSlides = 6
 
   useEffect(() => {
     const container = containerRef.current
@@ -116,21 +110,6 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
     }
   }
 
-  // Shelf horizontal scroll handler
-  const onShelfScroll = () => {
-    const el = shelfScrollRef.current
-    if (!el) return
-    const cardW = 280 + 16
-    const idx = Math.round(el.scrollLeft / cardW)
-    setActiveShelfIndex(Math.min(shelfProducts.length - 1, Math.max(0, idx)))
-  }
-
-  const scrollShelfTo = (idx: number) => {
-    const el = shelfScrollRef.current
-    if (!el) return
-    const cardW = 280 + 16
-    el.scrollTo({ left: idx * cardW, behavior: 'smooth' })
-  }
 
   return (
     <div
@@ -318,7 +297,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
           </div>
 
           {/* Lateral Navigation Dots & Hint */}
-          <div className="mt-5 flex flex-col items-center gap-1 z-10">
+          <div className="mt-3 flex flex-col items-center gap-1 z-10">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setBeat2ActiveIndex((prev) => Math.max(0, prev - 1))}
@@ -328,7 +307,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 max-w-[200px] overflow-x-auto no-scrollbar py-0.5">
                 {heroProducts.map((_, i) => (
                   <button
                     key={i}
@@ -357,6 +336,34 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
             </div>
             <span className="text-[11px] text-muted tracking-tight">Swipe or tap jars sideways</span>
           </div>
+
+          {/* Active Product Action Bar (Add to basket + stepper) */}
+          {heroProducts[beat2ActiveIndex] && (
+            <div className="mt-2.5 w-full max-w-[340px] px-1 z-10">
+              <div className="flex items-center justify-between gap-2.5 rounded-2xl bg-surface-2/95 backdrop-blur-md p-2.5 border border-line shadow-lg">
+                <div className="min-w-0 flex-1 pl-1">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="truncate text-[13.5px] font-semibold tracking-tight">{heroProducts[beat2ActiveIndex].name}</h3>
+                    {heroProducts[beat2ActiveIndex].isOutOfStock && (
+                      <span className="shrink-0 rounded-full bg-danger/10 px-1.5 py-0.5 text-[10px] font-medium text-danger">
+                        Sold out
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[13.5px] font-bold text-primary tabular-nums">₹{heroProducts[beat2ActiveIndex].price}</span>
+                    <span className="text-[10px] text-muted">·</span>
+                    <Link href={productHref(heroProducts[beat2ActiveIndex])} className="text-[11px] font-medium text-muted hover:text-foreground flex items-center gap-0.5">
+                      Details <ArrowRight className="h-2.5 w-2.5" />
+                    </Link>
+                  </div>
+                </div>
+                <div className="shrink-0">
+                  <CartQuantityButton product={heroProducts[beat2ActiveIndex]} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Bottom CTA Button */}
@@ -415,149 +422,16 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
           onClick={() => scrollToSlide(3)}
           className="press mx-auto flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-2/80 backdrop-blur-sm border border-line text-[12.5px] font-medium text-muted hover:text-foreground"
         >
-          <span>View the shelf</span>
+          <span>How to order</span>
           <ChevronDown className="h-3.5 w-3.5 animate-bounce" />
         </button>
       </section>
 
       {/* ======================================================== */}
-      {/* SLIDE 3: THE SHELF (SINGLE SLIDE WITH HORIZONTAL SCROLL) */}
-      {/* ALL PRODUCTS (3, 5, 10+) ARE BROWSED SIDEWAYS HERE       */}
+      {/* SLIDE 3: HOW TO ORDER                                    */}
       {/* ======================================================== */}
       <section
         data-slide-index={3}
-        className="relative h-[100svh] w-full shrink-0 snap-start snap-always overflow-hidden flex flex-col justify-between pt-[max(4.5rem,10svh)] pb-5 px-4"
-        style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
-      >
-        {/* Shelf Header */}
-        <div className="flex items-center justify-between gap-4 z-10 px-2">
-          <div>
-            <span className="text-[12px] font-semibold uppercase tracking-wider text-primary">The Shelf</span>
-            <h2 className="text-[22px] font-semibold tracking-[-0.03em] leading-tight">
-              {activeShelfIndex + 1} <span className="text-muted text-[15px] font-normal">/ {shelfProducts.length}</span>
-            </h2>
-          </div>
-
-          {/* Interactive Horizontal Navigation Dots */}
-          <div className="flex items-center gap-1 p-1 rounded-full bg-surface-2/80 border border-line max-w-[160px] overflow-x-auto no-scrollbar">
-            {shelfProducts.map((p, dotIdx) => (
-              <button
-                key={p.id}
-                onClick={() => scrollShelfTo(dotIdx)}
-                className="p-1"
-                aria-label={`Jump to ${p.name}`}
-              >
-                <span
-                  className={`block rounded-full transition-all duration-300 ${
-                    dotIdx === activeShelfIndex
-                      ? 'w-4 h-1.5 bg-primary'
-                      : 'w-1.5 h-1.5 bg-foreground/20'
-                  }`}
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Horizontal Scrollable Product Carousel Container */}
-        <div
-          ref={shelfScrollRef}
-          onScroll={onShelfScroll}
-          className="w-full flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar py-2 px-2 gap-4 overscroll-x-contain touch-pan-x items-center my-auto"
-          style={{
-            WebkitOverflowScrolling: 'touch',
-            scrollSnapType: 'x mandatory',
-          }}
-        >
-          {shelfProducts.map((product, pIdx) => {
-            const isCurrent = activeShelfIndex === pIdx
-
-            return (
-              <div
-                key={product.id}
-                className="snap-center shrink-0 w-[78vw] max-w-[300px] h-[390px] rounded-[26px] bg-surface-2 ring-1 ring-black/5 dark:ring-white/10 overflow-hidden flex flex-col justify-between shadow-md relative p-3.5 transition-all duration-300"
-                style={{
-                  scrollSnapAlign: 'center',
-                  transform: isCurrent ? 'scale(1)' : 'scale(0.96)',
-                  opacity: isCurrent ? 1 : 0.8,
-                }}
-              >
-                {/* Product Image Area */}
-                <div className="relative w-full h-[200px] overflow-hidden rounded-[20px] bg-surface">
-                  {product.image ? (
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      sizes="300px"
-                      className="object-cover"
-                      priority={pIdx < 2}
-                    />
-                  ) : (
-                    <div className="grid h-full w-full place-items-center text-sm text-muted">{product.name}</div>
-                  )}
-                  <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,0.2)_0%,transparent_35%)]" />
-
-                  {product.isOutOfStock && (
-                    <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-medium text-[#1d1d1f]">
-                      Sold out
-                    </span>
-                  )}
-                </div>
-
-                {/* Product Content Details */}
-                <div className="flex flex-col flex-1 justify-between pt-3">
-                  <div>
-                    <h3 className="text-[17px] font-semibold tracking-tight truncate">{product.name}</h3>
-                    {product.description && (
-                      <p className="mt-1 line-clamp-2 text-[12.5px] leading-[1.38] text-muted">
-                        {product.description}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Actions & Price Bar */}
-                  <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-line/50">
-                    <span className="text-[16px] font-semibold tabular-nums text-foreground">
-                      ₹{product.price}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <CartQuantityButton product={product} />
-                      <Link
-                        href={productHref(product)}
-                        className="press inline-flex items-center gap-0.5 text-[12px] font-medium text-muted hover:text-foreground"
-                      >
-                        Details <ArrowRight className="h-3 w-3" />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Shelf Navigation Footer / Hint */}
-        <div className="flex flex-col items-center gap-1.5 z-10 px-2">
-          <div className="flex items-center gap-1 text-[11px] text-muted">
-            <span>Scroll sideways to view all jars ({shelfProducts.length})</span>
-          </div>
-
-          <button
-            onClick={() => scrollToSlide(4)}
-            className="press flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-2/80 backdrop-blur-sm border border-line text-[12px] font-medium text-muted hover:text-foreground"
-          >
-            <span>How to order</span>
-            <ChevronDown className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </section>
-
-      {/* ======================================================== */}
-      {/* SLIDE 4: HOW TO ORDER                                    */}
-      {/* ======================================================== */}
-      <section
-        data-slide-index={4}
         className="relative h-[100svh] w-full shrink-0 snap-start snap-always overflow-hidden flex flex-col justify-between pt-[max(4.5rem,10svh)] pb-5 px-5"
         style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
       >
@@ -617,7 +491,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
 
         {/* Bottom CTA */}
         <button
-          onClick={() => scrollToSlide(5)}
+          onClick={() => scrollToSlide(4)}
           className="press mx-auto flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-2/80 backdrop-blur-sm border border-line text-[12.5px] font-medium text-muted hover:text-foreground"
         >
           <span>Frequently asked</span>
@@ -626,10 +500,10 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
       </section>
 
       {/* ======================================================== */}
-      {/* SLIDE 5: FAQ                                             */}
+      {/* SLIDE 4: FAQ                                             */}
       {/* ======================================================== */}
       <section
-        data-slide-index={5}
+        data-slide-index={4}
         className="relative h-[100svh] w-full shrink-0 snap-start snap-always overflow-hidden flex flex-col justify-between pt-[max(4.5rem,10svh)] pb-5 px-5"
         style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
       >
@@ -670,7 +544,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
 
         {/* Bottom CTA */}
         <button
-          onClick={() => scrollToSlide(6)}
+          onClick={() => scrollToSlide(5)}
           className="press mx-auto flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-2/80 backdrop-blur-sm border border-line text-[12.5px] font-medium text-muted hover:text-foreground"
         >
           <span>Closing thoughts</span>
@@ -679,10 +553,10 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
       </section>
 
       {/* ======================================================== */}
-      {/* SLIDE 6: CLOSING FRAME & MOBILE FOOTER                    */}
+      {/* SLIDE 5: CLOSING FRAME & MOBILE FOOTER                    */}
       {/* ======================================================== */}
       <section
-        data-slide-index={6}
+        data-slide-index={5}
         className="relative h-[100svh] w-full shrink-0 snap-start snap-always overflow-hidden flex flex-col justify-between pt-[max(4.5rem,10svh)] pb-5 px-5 bg-[#15190f] text-white"
         style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
       >

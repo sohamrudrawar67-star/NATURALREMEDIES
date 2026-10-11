@@ -5,8 +5,9 @@ import { safeListProducts } from '@/lib/catalog'
 import { faqLd, graph, itemListLd, shopFaqs } from '@/lib/seo'
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, jsonLd } from '@/lib/site'
 
-// Re-render at most every 5 minutes; admin edits purge it immediately.
-export const revalidate = 300
+// Always serve fresh catalog so admin published products reflect immediately.
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export const metadata: Metadata = {
   title: { absolute: `${SITE_NAME} — ${SITE_TAGLINE} | Pure honey, ordered on WhatsApp` },

@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react'
 import { HeroScroll } from '@/components/home/HeroScroll'
 import { StatementReveal } from '@/components/home/StatementReveal'
-import { ProductCoverflow } from '@/components/home/ProductCoverflow'
 import { HowToOrder } from '@/components/home/HowToOrder'
 import { ClosingFrame } from '@/components/home/ClosingFrame'
 import { MobileHomeLock } from '@/components/home/MobileHomeLock'
+import { getProducts } from '@/lib/products'
 import type { Product } from '@/store/useCartStore'
 
-/** Interactive home page. Products arrive server-rendered, so crawlers see them too. */
+/** Interactive home page. Products arrive server-rendered and refresh on mount. */
 export function HomeClient({
   products,
   faqs,
@@ -21,6 +21,18 @@ export function HomeClient({
 }) {
   const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [items, setItems] = useState<Product[]>(products)
+
+  useEffect(() => {
+    setItems(products)
+  }, [products])
+
+  useEffect(() => {
+    // Keep products synchronized in real time when admin adds or modifies products
+    getProducts({ fresh: true }).then((fresh) => {
+      if (fresh && fresh.length > 0) setItems(fresh)
+    })
+  }, [])
 
   useEffect(() => {
     setMounted(true)
@@ -35,21 +47,20 @@ export function HomeClient({
       {/* Mobile experience: Screen-locked slides with 3D transitions */}
       {mounted && isMobile ? (
         <div className="block md:hidden">
-          <MobileHomeLock products={products} faqs={faqs} />
+          <MobileHomeLock products={items} faqs={faqs} />
         </div>
       ) : null}
 
-      {/* Desktop experience: 100% UNTOUCHED existing layout */}
+      {/* Desktop experience */}
       <div className={`flex flex-col ${mounted && isMobile ? 'hidden' : ''}`}>
-        <HeroScroll products={products} />
+        <HeroScroll products={items} />
         <StatementReveal
           text="Natural Remedies is a small, homegrown brand. We keep the shelf short and ordering simple — pick what you need, send us a message, and get on with your day."
           emphasis={['homegrown', 'short']}
         />
-        <ProductCoverflow products={products} />
-        <HowToOrder products={products} />
+        <HowToOrder products={items} />
         {faq}
-        <ClosingFrame image={[...products].sort((a, b) => b.price - a.price)[0]?.image} />
+        <ClosingFrame image={[...items].sort((a, b) => b.price - a.price)[0]?.image} />
       </div>
     </>
   )
