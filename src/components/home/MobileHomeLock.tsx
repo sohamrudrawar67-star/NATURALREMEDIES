@@ -45,10 +45,30 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
     const container = containerRef.current
     if (!container) return
 
+    let ticking = false
+    let lastRatio = 0
+
     const handleScroll = () => {
-      const h = container.clientHeight || window.innerHeight
-      const r = Math.min(1, Math.max(0, container.scrollTop / h))
-      setScrollRatio(r)
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          ticking = false
+          if (!container) return
+          const h = container.clientHeight || window.innerHeight
+          const st = container.scrollTop
+          // Only calculate and update scrollRatio while animating between Slide 0 and Slide 1
+          if (st <= h * 1.15) {
+            const r = Math.min(1, Math.max(0, st / h))
+            if (Math.abs(r - lastRatio) > 0.005) {
+              lastRatio = r
+              setScrollRatio(r)
+            }
+          } else if (lastRatio !== 1) {
+            lastRatio = 1
+            setScrollRatio(1)
+          }
+        })
+        ticking = true
+      }
     }
 
     container.addEventListener('scroll', handleScroll, { passive: true })
@@ -114,7 +134,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-20 h-[100svh] w-full overflow-y-auto snap-y snap-mandatory scroll-smooth overscroll-y-contain bg-background select-none"
+      className="fixed inset-0 z-20 h-[100svh] w-full overflow-y-auto snap-y snap-mandatory overscroll-y-contain bg-background"
       style={{
         scrollSnapType: 'y mandatory',
         WebkitOverflowScrolling: 'touch',
@@ -171,10 +191,18 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
           </p>
 
           <div className="mt-7 flex items-center justify-center gap-3">
-            <Link href="/products" className="press btn-primary h-12 px-7 text-[15px] font-medium">
+            <Link
+              href="/products"
+              prefetch={true}
+              className="press btn-primary h-12 px-7 text-[15px] font-medium active:scale-95 transition-transform"
+            >
               Shop now
             </Link>
-            <Link href="/about" className="press btn-secondary h-12 px-7 text-[15px] font-medium">
+            <Link
+              href="/about"
+              prefetch={true}
+              className="press btn-secondary h-12 px-7 text-[15px] font-medium active:scale-95 transition-transform"
+            >
               Our story
             </Link>
           </div>
@@ -183,7 +211,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
         {/* Bottom CTA Button */}
         <button
           onClick={() => scrollToSlide(1)}
-          className="press mx-auto flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-2/85 backdrop-blur-sm border border-line text-[13px] font-medium text-muted hover:text-foreground shadow-sm z-10"
+          className="press mx-auto flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-2/85 backdrop-blur-sm border border-line text-[13px] font-medium text-muted hover:text-foreground shadow-sm z-10 active:scale-95 transition-transform"
         >
           <span>Explore our shelf</span>
           <ChevronDown className="h-4 w-4 animate-bounce" />
@@ -216,7 +244,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
           <p className="mt-2 max-w-[32ch] text-[14.5px] leading-[1.4] text-muted">
             We&rsquo;d rather sell a few things we like than a hundred we don&rsquo;t.
           </p>
-          <Link href="/products" className="link-arrow mt-2.5 text-[14px] font-medium">
+          <Link href="/products" prefetch={true} className="link-arrow mt-2.5 text-[14px] font-medium active:opacity-75">
             See everything <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -353,7 +381,11 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[13.5px] font-bold text-primary tabular-nums">₹{heroProducts[beat2ActiveIndex].price}</span>
                     <span className="text-[10px] text-muted">·</span>
-                    <Link href={productHref(heroProducts[beat2ActiveIndex])} className="text-[11px] font-medium text-muted hover:text-foreground flex items-center gap-0.5">
+                    <Link
+                      href={productHref(heroProducts[beat2ActiveIndex])}
+                      prefetch={true}
+                      className="text-[11px] font-medium text-muted hover:text-foreground flex items-center gap-0.5 active:opacity-75"
+                    >
                       Details <ArrowRight className="h-2.5 w-2.5" />
                     </Link>
                   </div>
@@ -584,7 +616,8 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
           <div className="mt-4 flex items-center gap-3">
             <Link
               href="/products"
-              className="press inline-flex h-11 items-center rounded-full bg-white px-6 text-[14px] font-medium text-black hover:bg-white/90"
+              prefetch={true}
+              className="press inline-flex h-11 items-center rounded-full bg-white px-6 text-[14px] font-medium text-black hover:bg-white/90 active:scale-95 transition-transform"
             >
               Shop the shelf
             </Link>
@@ -592,7 +625,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noreferrer"
-              className="press inline-flex h-11 items-center rounded-full border border-white/25 bg-white/10 px-5 text-[14px] font-medium text-white backdrop-blur-md hover:bg-white/20"
+              className="press inline-flex h-11 items-center rounded-full border border-white/25 bg-white/10 px-5 text-[14px] font-medium text-white backdrop-blur-md hover:bg-white/20 active:scale-95 transition-transform"
             >
               Ask on WhatsApp
             </a>
@@ -602,13 +635,13 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
         {/* Integrated Mobile Footer */}
         <div className="border-t border-white/10 pt-3 z-10 flex flex-col items-center gap-2 text-center">
           <div className="flex items-center gap-4 text-[13px] text-white/70">
-            <Link href="/products" className="hover:text-white">Shop</Link>
+            <Link href="/products" prefetch={true} className="hover:text-white py-1">Shop</Link>
             <span>•</span>
-            <Link href="/cart" className="hover:text-white">Basket</Link>
+            <Link href="/cart" prefetch={true} className="hover:text-white py-1">Basket</Link>
             <span>•</span>
-            <Link href="/about" className="hover:text-white">Our story</Link>
+            <Link href="/about" prefetch={true} className="hover:text-white py-1">Our story</Link>
             <span>•</span>
-            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="hover:text-white">WhatsApp</a>
+            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="hover:text-white py-1">WhatsApp</a>
           </div>
           <div className="text-[11.5px] text-white/40">
             © {new Date().getFullYear()} Natural Remedies • Homegrown

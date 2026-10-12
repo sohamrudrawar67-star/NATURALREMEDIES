@@ -131,7 +131,7 @@ export function Navbar() {
             )}
             aria-label="Main"
           >
-            <Link href="/" className="press flex items-center gap-2.5 rounded-full pr-2" aria-label="Natural Remedies home">
+            <Link href="/" prefetch={true} className="press flex items-center gap-2.5 rounded-full pr-2" aria-label="Natural Remedies home">
               <span className="relative grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-black/5">
                 <Image src="/logo.png" alt="" width={32} height={29} className="h-8 w-8 object-contain" preload />
               </span>
@@ -143,6 +143,7 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  prefetch={true}
                   className={cn(
                     'press relative rounded-full px-4 py-1.5 text-[13.5px] font-medium tracking-[-0.01em]',
                     isActive(link.href) ? 'text-foreground' : 'text-muted hover:text-foreground'
@@ -327,6 +328,8 @@ export function Navbar() {
                   >
                     <Link
                       href={link.href}
+                      prefetch={true}
+                      onClick={() => setMenuOpen(false)}
                       className={cn(
                         'press flex items-center justify-between rounded-2xl px-4 py-3.5 text-[22px] font-medium tracking-[-0.02em]',
                         isActive(link.href) ? 'bg-foreground/[0.05]' : ''
@@ -388,6 +391,7 @@ function IconLink({ href, label, children }: { href: string; label: string; chil
   return (
     <Link
       href={href}
+      prefetch={true}
       aria-label={label}
       title={label}
       className="press relative grid h-10 w-10 place-items-center rounded-full text-foreground/80 hover:bg-foreground/[0.06] hover:text-foreground"

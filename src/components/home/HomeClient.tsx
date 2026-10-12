@@ -35,33 +35,27 @@ export function HomeClient({
   }, [])
 
   useEffect(() => {
-    setMounted(true)
     const check = () => setIsMobile(window.innerWidth < 768)
     check()
-    window.addEventListener('resize', check)
+    setMounted(true)
+    window.addEventListener('resize', check, { passive: true })
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  return (
-    <>
-      {/* Mobile experience: Screen-locked slides with 3D transitions */}
-      {mounted && isMobile ? (
-        <div className="block md:hidden">
-          <MobileHomeLock products={items} faqs={faqs} />
-        </div>
-      ) : null}
+  if (mounted && isMobile) {
+    return <MobileHomeLock products={items} faqs={faqs} />
+  }
 
-      {/* Desktop experience */}
-      <div className={`flex flex-col ${mounted && isMobile ? 'hidden' : ''}`}>
-        <HeroScroll products={items} />
-        <StatementReveal
-          text="Natural Remedies is a small, homegrown brand. We keep the shelf short and ordering simple — pick what you need, send us a message, and get on with your day."
-          emphasis={['homegrown', 'short']}
-        />
-        <HowToOrder products={items} />
-        {faq}
-        <ClosingFrame image={[...items].sort((a, b) => b.price - a.price)[0]?.image} />
-      </div>
-    </>
+  return (
+    <div className="flex flex-col">
+      <HeroScroll products={items} />
+      <StatementReveal
+        text="Natural Remedies is a small, homegrown brand. We keep the shelf short and ordering simple — pick what you need, send us a message, and get on with your day."
+        emphasis={['homegrown', 'short']}
+      />
+      <HowToOrder products={items} />
+      {faq}
+      <ClosingFrame image={[...items].sort((a, b) => b.price - a.price)[0]?.image} />
+    </div>
   )
 }

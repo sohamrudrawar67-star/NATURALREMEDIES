@@ -11,7 +11,8 @@ export function ProductCard({ product, className }: { product: Product; classNam
     <article className={cn('group flex flex-col', className)}>
       <Link
         href={productHref(product)}
-        className="relative block aspect-[4/5] overflow-hidden rounded-[26px] bg-surface-2 ring-1 ring-black/[0.04] dark:ring-white/[0.06]"
+        prefetch={true}
+        className="relative block aspect-[4/5] overflow-hidden rounded-[26px] bg-surface-2 ring-1 ring-black/[0.04] dark:ring-white/[0.06] active:scale-[0.98] transition-transform"
       >
         {product.image ? (
           <Image
@@ -34,7 +35,7 @@ export function ProductCard({ product, className }: { product: Product; classNam
 
       <div className="flex items-start justify-between gap-4 px-1 pt-4">
         <div className="min-w-0">
-          <Link href={productHref(product)}>
+          <Link href={productHref(product)} prefetch={true}>
             <h3 className="truncate text-[17px] font-semibold tracking-[-0.02em]">{product.name}</h3>
           </Link>
           {product.description && (
