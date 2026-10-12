@@ -21,14 +21,14 @@ export function HowToOrder({ products }: { products: Product[] }) {
       <div className="mt-14 grid gap-4 md:grid-cols-6 md:grid-rows-[auto_auto]">
         {/* Step 1 */}
         <Reveal className="md:col-span-3" delay={0}>
-          <div className="relative h-full overflow-hidden rounded-[30px] bg-surface p-8 ring-1 ring-line">
+          <div className="relative h-full overflow-hidden rounded-[30px] bg-surface p-8 ring-1 ring-primary/15 shadow-xs">
             <StepNumber n={1} />
             <h3 className="mt-6 text-[22px] font-semibold tracking-[-0.025em]">Fill your basket</h3>
             <p className="mt-2 max-w-[34ch] text-[15px] leading-[1.55] text-muted">
               Add what you need. Your basket stays saved on this device, so you can come back to it later.
             </p>
             <div className="mt-8 flex items-center gap-3">
-              <div className="glass flex items-center gap-3 rounded-2xl py-2 pl-2 pr-4">
+              <div className="glass flex items-center gap-3 rounded-2xl py-2 pl-2 pr-4 border border-primary/15">
                 {a?.image ? (
                   <span className="relative h-11 w-11 overflow-hidden rounded-xl">
                     <Image src={a.image} alt="" fill sizes="44px" className="object-cover" />
@@ -40,7 +40,7 @@ export function HowToOrder({ products }: { products: Product[] }) {
                   {a ? (
                     <>
                       <div className="font-medium">{a.name}</div>
-                      <div className="text-muted tabular-nums">2 × ₹{a.price}</div>
+                      <div className="text-primary font-medium tabular-nums">2 × ₹{a.price}</div>
                     </>
                   ) : (
                     <>
@@ -50,7 +50,7 @@ export function HowToOrder({ products }: { products: Product[] }) {
                   )}
                 </div>
               </div>
-              <div className="grid h-11 w-11 place-items-center rounded-full bg-primary text-primary-foreground">
+              <div className="grid h-11 w-11 place-items-center rounded-full bg-primary text-primary-foreground shadow-xs">
                 <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.75} />
               </div>
             </div>
@@ -59,7 +59,7 @@ export function HowToOrder({ products }: { products: Product[] }) {
 
         {/* Step 2 */}
         <Reveal className="md:col-span-3" delay={80}>
-          <div className="relative h-full overflow-hidden rounded-[30px] bg-surface p-8 ring-1 ring-line">
+          <div className="relative h-full overflow-hidden rounded-[30px] bg-surface p-8 ring-1 ring-primary/15 shadow-xs">
             <StepNumber n={2} />
             <h3 className="mt-6 text-[22px] font-semibold tracking-[-0.025em]">Tell us where</h3>
             <p className="mt-2 max-w-[34ch] text-[15px] leading-[1.55] text-muted">
@@ -74,14 +74,14 @@ export function HowToOrder({ products }: { products: Product[] }) {
 
         {/* Step 3 — wide */}
         <Reveal className="md:col-span-6" delay={120}>
-          <div className="relative overflow-hidden rounded-[30px] bg-[#e7efe0] p-8 ring-1 ring-line dark:bg-[#0f160b] md:p-10">
+          <div className="relative overflow-hidden rounded-[30px] bg-tint/80 p-8 ring-1 ring-primary/25 dark:bg-[#0f170b] md:p-10 shadow-sm">
             <div className="grid items-center gap-10 md:grid-cols-2">
               <div>
                 <StepNumber n={3} />
                 <h3 className="mt-6 text-[clamp(24px,2.6vw,34px)] font-semibold leading-[1.1] tracking-[-0.03em]">
                   Send it on WhatsApp.
                   <br />
-                  <span className="font-serif font-normal italic">We take it from there.</span>
+                  <span className="font-serif font-normal italic text-primary">We take it from there.</span>
                 </h3>
                 <p className="mt-3 max-w-[38ch] text-[15px] leading-[1.55] text-muted">
                   Checkout opens WhatsApp with your order already written out. Hit send, and we&rsquo;ll confirm the details with you directly.
@@ -90,9 +90,9 @@ export function HowToOrder({ products }: { products: Product[] }) {
 
               {/* A little chat, the way it actually looks */}
               <div className="relative mx-auto w-full max-w-[380px]">
-                <div className="glass rounded-[26px] p-4">
+                <div className="glass rounded-[26px] p-4 border border-primary/20">
                   <div className="flex items-center gap-2.5 border-b border-line pb-3">
-                    <span className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-black/5">
+                    <span className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-primary/20 shadow-xs">
                       <Image src="/logo.png" alt="" width={28} height={25} className="h-7 w-7 object-contain" />
                     </span>
                     <div className="leading-tight">

@@ -43,6 +43,9 @@ export function ShopClient({ products, query }: { products: Product[]; query: st
     <div className="mx-auto max-w-[1200px] px-6 pb-24 pt-32 sm:pt-40">
       <header className="enter flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
         <div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tint text-tint-foreground text-[12px] font-medium border border-primary/20 mb-3 w-fit shadow-xs">
+            🌿 Homegrown & Natural
+          </span>
           <h1 className="text-[clamp(44px,7vw,88px)] font-semibold leading-[0.95] tracking-[-0.05em]">
             {query ? (
               <>
@@ -50,7 +53,7 @@ export function ShopClient({ products, query }: { products: Product[]; query: st
               </>
             ) : (
               <>
-                The <em className="font-serif font-normal italic tracking-[-0.02em]">shop.</em>
+                The <em className="font-serif font-normal italic tracking-[-0.02em] text-primary">shop.</em>
               </>
             )}
           </h1>
@@ -61,12 +64,12 @@ export function ShopClient({ products, query }: { products: Product[]; query: st
           </p>
         </div>
 
-        <form onSubmit={submit} className="glass flex h-12 w-full items-center gap-2 rounded-full pl-4 pr-1.5 md:w-[320px]">
-          <Search className="h-4 w-4 shrink-0 text-muted" strokeWidth={1.75} />
+        <form onSubmit={submit} className="glass flex h-12 w-full items-center gap-2 rounded-full pl-4 pr-1.5 md:w-[320px] ring-1 ring-primary/20 focus-within:ring-primary">
+          <Search className="h-4 w-4 shrink-0 text-primary" strokeWidth={1.75} />
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Search the shop"
+            placeholder="Search natural honey, goods…"
             aria-label="Search the shop"
             className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-subtle"
           />
@@ -78,7 +81,7 @@ export function ShopClient({ products, query }: { products: Product[]; query: st
         </form>
       </header>
 
-      <div className="enter mt-10 flex gap-1 overflow-x-auto border-b border-line pb-4" style={{ animationDelay: '80ms' }} role="tablist" aria-label="Sort">
+      <div className="enter mt-10 flex gap-1.5 overflow-x-auto border-b border-line pb-4" style={{ animationDelay: '80ms' }} role="tablist" aria-label="Sort">
         {SORTS.map((s) => (
           <button
             key={s.key}
@@ -86,14 +89,14 @@ export function ShopClient({ products, query }: { products: Product[]; query: st
             aria-selected={sort === s.key}
             onClick={() => setSort(s.key)}
             className={cn(
-              'press relative shrink-0 rounded-full px-4 py-2 text-[14px] font-medium',
-              sort === s.key ? 'text-background' : 'text-muted hover:text-foreground'
+              'press relative shrink-0 rounded-full px-4 py-2 text-[14px] font-medium transition-colors',
+              sort === s.key ? 'text-primary-foreground font-semibold' : 'text-muted hover:text-foreground'
             )}
           >
             {sort === s.key && (
               <motion.span
                 layoutId="sort-pill"
-                className="absolute inset-0 -z-10 rounded-full bg-foreground"
+                className="absolute inset-0 -z-10 rounded-full bg-primary shadow-xs"
                 transition={{ type: 'spring', duration: 0.4, bounce: 0.12 }}
               />
             )}

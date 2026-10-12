@@ -89,9 +89,15 @@ function ProductCoverflowInner({ products }: { products: Product[] }) {
       <div className="sticky top-0 flex h-[100svh] flex-col overflow-hidden">
         <div className="mx-auto w-full max-w-[1200px] px-6 pt-[max(13vh,5.5rem)] sm:pt-[15vh]">
           <div className="flex items-end justify-between gap-6">
-            <h2 className="text-[clamp(32px,4.6vw,60px)] font-semibold leading-[1] tracking-[-0.04em]">
-              The <em className="font-serif font-normal italic">shelf.</em>
-            </h2>
+            <div className="flex flex-col gap-1.5">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-tint/80 px-3 py-0.5 text-[12px] font-medium text-primary backdrop-blur-md w-fit">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                100% Homegrown & Handcrafted
+              </div>
+              <h2 className="text-[clamp(32px,4.6vw,60px)] font-semibold leading-[1] tracking-[-0.04em]">
+                The <em className="font-serif font-normal italic text-primary">shelf.</em>
+              </h2>
+            </div>
             <div className="-mr-2 flex items-center pb-1" role="tablist" aria-label="Choose product">
               {products.map((p, i) => (
                 <button
@@ -103,8 +109,8 @@ function ProductCoverflowInner({ products }: { products: Product[] }) {
                   className="press grid h-10 min-w-8 place-items-center px-1.5"
                 >
                   <span
-                    className="block h-1.5 rounded-full bg-foreground transition-[width,opacity] duration-300 ease-[var(--ease-out)]"
-                    style={{ width: i === active ? 22 : 6, opacity: i === active ? 0.9 : 0.22 }}
+                    className="block h-1.5 rounded-full bg-primary transition-[width,opacity] duration-300 ease-[var(--ease-out)]"
+                    style={{ width: i === active ? 22 : 6, opacity: i === active ? 0.95 : 0.25 }}
                   />
                 </button>
               ))}
@@ -137,7 +143,7 @@ function ProductCoverflowInner({ products }: { products: Product[] }) {
                 </p>
               )}
               <div className="mt-5 flex items-center gap-4">
-                <span className="text-[17px] font-medium tabular-nums">₹{current.price}</span>
+                <span className="text-[17px] font-semibold tabular-nums text-primary">₹{current.price}</span>
                 <CartQuantityButton product={current} />
                 <Link href={productHref(current)} className="link-arrow hidden text-[14px] sm:inline-flex">
                   Details <ArrowRight className="h-3.5 w-3.5" />
@@ -188,7 +194,7 @@ function ShelfCard({
       aria-label={`Show ${product.name}`}
       tabIndex={-1}
       style={{ transform, opacity, zIndex }}
-      className="absolute inset-0 overflow-hidden rounded-[28px] bg-surface-2 ring-1 ring-black/5 will-change-transform dark:ring-white/10"
+      className="absolute inset-0 overflow-hidden rounded-[28px] bg-surface-2 ring-1 ring-primary/20 will-change-transform dark:ring-primary/25"
     >
       {product.image ? (
         <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 64vw, 400px" className="object-cover" draggable={false} />

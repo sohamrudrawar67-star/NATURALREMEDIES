@@ -29,12 +29,14 @@ export default function AboutPage() {
     <div className="pb-24">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(aboutLd) }} />
       <section className="mx-auto max-w-[1040px] px-6 pt-36 sm:pt-44">
-        <p className="enter text-[14px] font-medium text-primary">Our story</p>
+        <span className="enter inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tint text-tint-foreground text-[12px] font-medium border border-primary/20 mb-3 w-fit shadow-xs">
+          🌿 Our Heritage & Philosophy
+        </span>
         <h1
           className="enter mt-4 text-balance text-[clamp(44px,7.4vw,96px)] font-semibold leading-[0.95] tracking-[-0.05em]"
           style={{ animationDelay: '80ms' }}
         >
-          Small on purpose. <em className="font-serif font-normal italic tracking-[-0.02em] text-muted">Homegrown</em> by
+          Small on purpose. <em className="font-serif font-normal italic tracking-[-0.02em] text-primary">Homegrown</em> by
           choice.
         </h1>
       </section>
@@ -65,7 +67,7 @@ export default function AboutPage() {
             { k: 'Nothing to sign up for', v: 'No passwords or accounts. Your details stay on your device until you send an order.' },
           ].map((item, i) => (
             <Reveal key={item.k} delay={i * 70}>
-              <div className="h-full rounded-[28px] bg-surface p-7 ring-1 ring-line">
+              <div className="h-full rounded-[28px] bg-surface p-7 ring-1 ring-primary/15 shadow-xs">
                 <span className="font-serif text-[40px] italic leading-none text-primary">0{i + 1}</span>
                 <h3 className="mt-6 text-[19px] font-semibold tracking-[-0.025em]">{item.k}</h3>
                 <p className="mt-2 text-[15px] leading-[1.55] text-muted">{item.v}</p>
@@ -77,19 +79,20 @@ export default function AboutPage() {
 
       <section className="mx-auto mt-28 max-w-[1040px] px-6">
         <Reveal>
-          <div className="relative overflow-hidden rounded-[32px] bg-foreground px-8 py-14 text-background sm:px-14 sm:py-20">
-            <h2 className="max-w-[18ch] text-balance text-[clamp(30px,4.2vw,54px)] font-semibold leading-[1.02] tracking-[-0.04em]">
-              Got a question? <em className="font-serif font-normal italic">Just ask.</em>
+          <div className="relative overflow-hidden rounded-[32px] bg-[#0d1609] px-8 py-14 text-[#f0f5ec] sm:px-14 sm:py-20 border border-primary/20 shadow-md">
+            <div className="absolute inset-0 bg-[radial-gradient(80%_70%_at_50%_30%,rgba(142,198,81,0.18),transparent)] pointer-events-none" />
+            <h2 className="max-w-[18ch] text-balance text-[clamp(30px,4.2vw,54px)] font-semibold leading-[1.02] tracking-[-0.04em] relative z-10">
+              Got a question? <em className="font-serif font-normal italic text-primary">Just ask.</em>
             </h2>
-            <p className="mt-4 max-w-[40ch] text-[16px] leading-[1.55] opacity-70">
+            <p className="mt-4 max-w-[40ch] text-[16px] leading-[1.55] opacity-75 relative z-10">
               About a product, an order, or anything else — send us a message on WhatsApp.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3 relative z-10">
               <a
                 href={WHATSAPP_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="press inline-flex h-12 items-center rounded-full bg-background px-7 text-[15px] font-medium text-foreground"
+                className="press inline-flex h-12 items-center rounded-full bg-white px-7 text-[15px] font-medium text-black hover:bg-white/90 active:scale-95 transition-transform"
               >
                 Message us
               </a>

@@ -12,7 +12,7 @@ export function ProductCard({ product, className }: { product: Product; classNam
       <Link
         href={productHref(product)}
         prefetch={true}
-        className="relative block aspect-[4/5] overflow-hidden rounded-[26px] bg-surface-2 ring-1 ring-black/[0.04] dark:ring-white/[0.06] active:scale-[0.98] transition-transform"
+        className="relative block aspect-[4/5] overflow-hidden rounded-[26px] bg-surface-2 ring-1 ring-primary/15 hover:ring-primary/40 dark:ring-primary/25 active:scale-[0.98] transition-all shadow-xs"
       >
         {product.image ? (
           <Image
@@ -42,7 +42,7 @@ export function ProductCard({ product, className }: { product: Product; classNam
             <p className="mt-1 line-clamp-2 text-[14px] leading-[1.45] text-muted">{product.description}</p>
           )}
         </div>
-        <span className="shrink-0 pt-0.5 text-[16px] font-medium tabular-nums">₹{product.price}</span>
+        <span className="shrink-0 pt-0.5 text-[16px] font-semibold tabular-nums text-primary">₹{product.price}</span>
       </div>
       <div className="px-1 pt-4">
         <CartQuantityButton product={product} />

@@ -83,7 +83,7 @@ export function CartQuantityButton({ product, className, large = false }: CartQu
           <motion.div
             key="stepper"
             {...swap}
-            className="absolute inset-0 flex items-center justify-between rounded-full bg-tint px-1 text-tint-foreground"
+            className="absolute inset-0 flex items-center justify-between rounded-full bg-tint border border-primary/25 px-1 text-tint-foreground shadow-sm"
           >
             <button
               onClick={decrement}

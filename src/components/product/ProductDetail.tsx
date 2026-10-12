@@ -41,14 +41,14 @@ export function ProductDetail({ product, others }: { product: Product; others: P
           {product.isOutOfStock ? (
             <span className="w-fit rounded-full bg-surface-2 px-3 py-1 text-[12.5px] font-medium text-muted">Sold out for now</span>
           ) : (
-            <span className="flex w-fit items-center gap-2 text-[13px] font-medium text-primary">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> In stock
+            <span className="flex w-fit items-center gap-2 rounded-full bg-tint px-3 py-1 text-[13px] font-medium text-primary border border-primary/20 shadow-xs">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" /> In stock · 100% Pure & Homegrown
             </span>
           )}
           <h1 className="mt-4 text-balance text-[clamp(36px,4.6vw,60px)] font-semibold leading-[1] tracking-[-0.045em]">
             {product.name}
           </h1>
-          <p className="mt-4 text-[26px] font-medium tabular-nums tracking-[-0.02em]">₹{product.price}</p>
+          <p className="mt-4 text-[26px] font-bold tabular-nums tracking-[-0.02em] text-primary">₹{product.price}</p>
 
           {product.description && (
             <p className="mt-6 max-w-[46ch] text-pretty text-[17px] leading-[1.6] text-muted">{product.description}</p>
@@ -76,7 +76,7 @@ export function ProductDetail({ product, others }: { product: Product; others: P
         <section className="mt-28">
           <Reveal>
             <h2 className="text-[clamp(28px,3.4vw,44px)] font-semibold tracking-[-0.04em]">
-              Also on the <em className="font-serif font-normal italic">shelf.</em>
+              Also on the <em className="font-serif font-normal italic text-primary">shelf.</em>
             </h2>
           </Reveal>
           <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
@@ -95,7 +95,7 @@ export function ProductDetail({ product, others }: { product: Product; others: P
 function Fact({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-4 py-4">
-      <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-foreground/80">{icon}</span>
+      <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-tint text-primary border border-primary/20">{icon}</span>
       <div>
         <div className="text-[15px] font-medium tracking-[-0.01em]">{title}</div>
         <div className="mt-0.5 text-[14px] text-muted">{children}</div>

@@ -4,27 +4,27 @@
 
 /* ---------- Tokens ---------- */
 :root {
-  --background: #fbfbf9;
-  --foreground: #1d1d1f;
+  --background: #f5f7f2;
+  --foreground: #151e12;
   --surface: #ffffff;
-  --surface-2: #f2f2ef;
-  --muted: #6e6e73;
-  --subtle: #737378;
-  --line: rgba(0, 0, 0, 0.08);
-  --line-strong: rgba(0, 0, 0, 0.14);
+  --surface-2: #eaf0e4;
+  --muted: #526649;
+  --subtle: #728468;
+  --line: rgba(45, 75, 25, 0.09);
+  --line-strong: rgba(45, 75, 25, 0.16);
 
-  --primary: #4a7424;
-  --primary-hover: #3e631d;
+  --primary: #3a691e;
+  --primary-hover: #2f5418;
   --primary-foreground: #ffffff;
-  --tint: #eef3e6;
-  --tint-foreground: #2f4a16;
+  --tint: #e6f0dc;
+  --tint-foreground: #244710;
 
   --danger: #c4402f;
 
-  --glass: rgba(255, 255, 255, 0.66);
-  --glass-strong: rgba(255, 255, 255, 0.82);
-  --glass-line: rgba(255, 255, 255, 0.7);
-  --glass-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 12px 40px -12px rgba(0, 0, 0, 0.14);
+  --glass: rgba(245, 248, 242, 0.72);
+  --glass-strong: rgba(245, 248, 242, 0.9);
+  --glass-line: rgba(120, 165, 80, 0.22);
+  --glass-shadow: 0 1px 0 rgba(60, 100, 30, 0.05), 0 16px 40px -12px rgba(35, 60, 18, 0.12);
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -34,27 +34,27 @@
 }
 
 .dark {
-  --background: #000000;
-  --foreground: #f5f5f7;
-  --surface: #111112;
-  --surface-2: #1c1c1e;
-  --muted: #a1a1a6;
-  --subtle: #8e8e93;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-strong: rgba(255, 255, 255, 0.16);
+  --background: #090f07;
+  --foreground: #f0f5ec;
+  --surface: #111a0e;
+  --surface-2: #182414;
+  --muted: #93ab87;
+  --subtle: #738b68;
+  --line: rgba(163, 207, 114, 0.13);
+  --line-strong: rgba(163, 207, 114, 0.22);
 
-  --primary: #a3cf72;
-  --primary-hover: #b6dc8c;
-  --primary-foreground: #0e1806;
-  --tint: #18220f;
-  --tint-foreground: #c5e3a3;
+  --primary: #8ec651;
+  --primary-hover: #a0d565;
+  --primary-foreground: #0a1405;
+  --tint: #16230f;
+  --tint-foreground: #bfe09b;
 
   --danger: #ff7b6b;
 
-  --glass: rgba(28, 28, 30, 0.58);
-  --glass-strong: rgba(28, 28, 30, 0.8);
-  --glass-line: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 16px 48px -12px rgba(0, 0, 0, 0.7);
+  --glass: rgba(17, 26, 14, 0.65);
+  --glass-strong: rgba(17, 26, 14, 0.88);
+  --glass-line: rgba(163, 207, 114, 0.18);
+  --glass-shadow: 0 1px 0 rgba(163, 207, 114, 0.06) inset, 0 16px 48px -12px rgba(0, 0, 0, 0.75);
 
   color-scheme: dark;
 }

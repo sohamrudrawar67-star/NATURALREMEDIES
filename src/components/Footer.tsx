@@ -4,12 +4,12 @@ import { WHATSAPP_URL } from '@/lib/site'
 
 export function Footer() {
   return (
-    <footer className="relative mt-auto overflow-hidden border-t border-line">
+    <footer className="relative mt-auto overflow-hidden border-t border-primary/15 bg-surface-2/40">
       <div className="mx-auto max-w-[1200px] px-6 pb-8 pt-16">
         <div className="grid gap-10 sm:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2.5">
-              <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-black/5">
+              <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-primary/20 shadow-xs">
                 <Image src="/logo.png" alt="" width={32} height={29} className="h-8 w-8 object-contain" />
               </span>
               <span className="text-[15px] font-semibold tracking-[-0.02em]">Natural Remedies</span>
@@ -38,12 +38,12 @@ export function Footer() {
         <div
           aria-hidden
           data-wordmark="Natural Remedies"
-          className="pointer-events-none mt-16 select-none whitespace-nowrap text-center text-[clamp(56px,15.5vw,220px)] font-semibold leading-[0.8] tracking-[-0.06em] text-foreground/[0.06] before:content-[attr(data-wordmark)]"
+          className="pointer-events-none mt-16 select-none whitespace-nowrap text-center text-[clamp(56px,15.5vw,220px)] font-semibold leading-[0.8] tracking-[-0.06em] text-primary/[0.05] before:content-[attr(data-wordmark)]"
         />
 
         <div className="mt-8 flex flex-col justify-between gap-2 text-[12.5px] text-subtle sm:flex-row">
           <span>© {new Date().getFullYear()} Natural Remedies</span>
-          <span>A homegrown brand.</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> A natural homegrown brand.</span>
         </div>
       </div>
     </footer>

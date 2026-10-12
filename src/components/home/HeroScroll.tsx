@@ -68,10 +68,10 @@ export function HeroScroll({ products }: { products: Product[] }) {
       )}
 
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {/* Light: warm paper. Dark: a single soft lamp. */}
+        {/* Light: natural herbal parchment. Dark: deep botanical lamp glow. */}
         <div className="absolute inset-0 -z-10 grain [mask-image:linear-gradient(to_bottom,black_75%,transparent)]">
-          <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,#f4f1ea_0%,var(--background)_60%)] dark:bg-[radial-gradient(90%_70%_at_50%_30%,#151a11_0%,#000_65%)]" />
-          <div className="absolute left-1/2 top-[62%] h-[46vh] w-[90vw] max-w-[1100px] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(120,150,80,0.16),transparent)] dark:bg-[radial-gradient(closest-side,rgba(163,207,114,0.12),transparent)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,#e8f2df_0%,var(--background)_65%)] dark:bg-[radial-gradient(90%_70%_at_50%_30%,#14240e_0%,var(--background)_70%)]" />
+          <div className="absolute left-1/2 top-[62%] h-[46vh] w-[90vw] max-w-[1100px] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(90,145,50,0.22),transparent)] dark:bg-[radial-gradient(closest-side,rgba(142,198,81,0.18),transparent)]" />
         </div>
 
         {/* Headline */}
@@ -83,9 +83,9 @@ export function HeroScroll({ products }: { products: Product[] }) {
           }}
           className="pointer-events-none absolute inset-x-0 top-[11vh] z-20 flex flex-col items-center px-6 text-center sm:top-[14vh]"
         >
-          <p className="enter mb-4 inline-flex items-center gap-2 text-[13px] font-medium tracking-[-0.005em] text-muted" style={{ animationDelay: '80ms' }}>
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <HeroGreeting fallback="A small homegrown shop" />
+          <p className="enter mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tint text-tint-foreground border border-primary/20 text-[12.5px] font-medium tracking-[-0.005em] shadow-xs" style={{ animationDelay: '80ms' }}>
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            <HeroGreeting fallback="100% Raw & Natural Homegrown" />
           </p>
           <h1 className="text-balance text-[clamp(42px,8.4vw,112px)] font-semibold leading-[0.95] tracking-[-0.045em]">
             <span className="enter inline-block" style={{ animationDelay: '140ms' }}>Good things,</span>
@@ -98,10 +98,10 @@ export function HeroScroll({ products }: { products: Product[] }) {
             Simple, natural everyday goods from a small homegrown brand. Order in a minute, over WhatsApp.
           </p>
           <div className="enter pointer-events-auto mt-6 flex items-center gap-3" style={{ animationDelay: '380ms' }}>
-            <Link href="/products" className="press btn-primary h-11 px-6 text-[15px]">
+            <Link href="/products" prefetch={true} className="press btn-primary h-11 px-6 text-[15px] active:scale-95 transition-transform">
               Shop now
             </Link>
-            <Link href="/about" className="press btn-secondary h-11 px-6 text-[15px]">
+            <Link href="/about" prefetch={true} className="press btn-secondary h-11 px-6 text-[15px] active:scale-95 transition-transform border border-line">
               Our story
             </Link>
           </div>

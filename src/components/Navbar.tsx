@@ -132,7 +132,7 @@ export function Navbar() {
             aria-label="Main"
           >
             <Link href="/" prefetch={true} className="press flex items-center gap-2.5 rounded-full pr-2" aria-label="Natural Remedies home">
-              <span className="relative grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-black/5">
+              <span className="relative grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-primary/25 shadow-xs">
                 <Image src="/logo.png" alt="" width={32} height={29} className="h-8 w-8 object-contain" preload />
               </span>
               <span className="whitespace-nowrap text-[15px] font-semibold tracking-[-0.02em]">Natural Remedies</span>
@@ -146,13 +146,13 @@ export function Navbar() {
                   prefetch={true}
                   className={cn(
                     'press relative rounded-full px-4 py-1.5 text-[13.5px] font-medium tracking-[-0.01em]',
-                    isActive(link.href) ? 'text-foreground' : 'text-muted hover:text-foreground'
+                    isActive(link.href) ? 'text-primary font-semibold' : 'text-muted hover:text-foreground'
                   )}
                 >
                   {isActive(link.href) && (
                     <motion.span
                       layoutId="nav-pill"
-                      className="absolute inset-0 -z-10 rounded-full bg-foreground/[0.07] dark:bg-white/[0.1]"
+                      className="absolute inset-0 -z-10 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20"
                       transition={reduceMotion ? { duration: 0 } : { type: 'spring', duration: 0.45, bounce: 0.15 }}
                     />
                   )}
@@ -332,11 +332,11 @@ export function Navbar() {
                       onClick={() => setMenuOpen(false)}
                       className={cn(
                         'press flex items-center justify-between rounded-2xl px-4 py-3.5 text-[22px] font-medium tracking-[-0.02em]',
-                        isActive(link.href) ? 'bg-foreground/[0.05]' : ''
+                        isActive(link.href) ? 'bg-primary/10 text-primary font-semibold border border-primary/20' : ''
                       )}
                     >
                       {link.label}
-                      <ArrowRight className="h-4 w-4 text-subtle" />
+                      <ArrowRight className="h-4 w-4 text-primary" />
                     </Link>
                   </motion.div>
                 ))}

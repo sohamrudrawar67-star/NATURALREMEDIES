@@ -40,7 +40,7 @@ export function ClosingFrame({ image }: { image?: string }) {
     <section ref={ref} className="relative snap-start" style={{ height: mobile ? '140vh' : '180vh' }}>
       <div className="sticky top-0 h-[100lvh] overflow-hidden">
         <motion.div style={{ clipPath }} className="absolute inset-0 will-change-[clip-path]">
-          <div className="absolute inset-0 bg-[#15190f]" />
+          <div className="absolute inset-0 bg-[#0d1609]" />
           {image && (
             <div className="absolute left-1/2 top-1/2 h-[10%] w-[10%] -translate-x-1/2 -translate-y-1/2">
               <motion.img
@@ -51,7 +51,7 @@ export function ClosingFrame({ image }: { image?: string }) {
               />
             </div>
           )}
-          <div className="absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_35%,transparent,rgba(0,0,0,0.55))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_35%,rgba(142,198,81,0.22),transparent,rgba(0,0,0,0.65))]" />
           <div className="grain absolute inset-0" />
         </motion.div>
 
@@ -59,7 +59,7 @@ export function ClosingFrame({ image }: { image?: string }) {
           <div className="absolute inset-x-0 top-[13vh] flex justify-center" style={{ perspective: 1200 }}>
             <motion.div
               style={{ transform: productTransform, opacity: productOpacity }}
-              className="relative aspect-square w-[min(38vh,72vw)] overflow-hidden rounded-[30px] shadow-[0_50px_100px_-30px_rgba(0,0,0,0.8)] ring-1 ring-white/15"
+              className="relative aspect-square w-[min(38vh,72vw)] overflow-hidden rounded-[30px] shadow-[0_50px_100px_-30px_rgba(0,0,0,0.8)] ring-1 ring-primary/30"
             >
               <Image src={image} alt="" fill sizes="(max-width: 768px) 72vw, 38vh" className="object-cover" />
               <span aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,0.25)_0%,transparent_35%)]" />
@@ -69,15 +69,15 @@ export function ClosingFrame({ image }: { image?: string }) {
 
         <motion.div
           style={{ opacity: textOpacity, transform: textTransform }}
-          className="absolute inset-x-0 bottom-[calc(100lvh-100svh+7vh)] flex flex-col items-center px-6 text-center text-white"
+          className="absolute inset-x-0 bottom-[calc(100lvh-100svh+7vh)] flex flex-col items-center px-6 text-center text-[#f0f5ec]"
         >
           <h2 className="text-balance text-[clamp(36px,5.6vw,80px)] font-semibold leading-[0.98] tracking-[-0.04em]">
             Take care of the
             <br />
-            <em className="font-serif font-normal italic tracking-[-0.02em]">small things.</em>
+            <em className="font-serif font-normal italic tracking-[-0.02em] text-primary">small things.</em>
           </h2>
           <div className="mt-8 flex items-center gap-3">
-            <Link href="/products" className="press inline-flex h-12 items-center rounded-full bg-white px-7 text-[15px] font-medium text-black hover:bg-white/90">
+            <Link href="/products" prefetch={true} className="press inline-flex h-12 items-center rounded-full bg-white px-7 text-[15px] font-medium text-black hover:bg-white/90 active:scale-95 transition-transform">
               Shop the shelf
             </Link>
             <a

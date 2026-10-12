@@ -33,7 +33,7 @@ export function TiltImage({ product }: { product: Product }) {
         onPointerMove={onMove}
         onPointerLeave={onLeave}
         style={{ transform, transformStyle: 'preserve-3d' }}
-        className="relative aspect-square overflow-hidden rounded-[32px] bg-surface-2 ring-1 ring-black/[0.04] dark:ring-white/[0.06]"
+        className="relative aspect-square overflow-hidden rounded-[32px] bg-surface-2 ring-1 ring-primary/20 shadow-sm dark:ring-primary/25"
       >
         {product.image ? (
           <Image src={product.image} alt={product.name} fill preload sizes="(max-width: 768px) 100vw, 55vw" className="object-cover" />

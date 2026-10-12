@@ -169,15 +169,15 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
         style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
       >
         <div className="absolute inset-0 -z-10 grain pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,#f4f1ea_0%,var(--background)_60%)] dark:bg-[radial-gradient(90%_70%_at_50%_30%,#151a11_0%,#000_65%)]" />
-          <div className="absolute left-1/2 top-[52%] h-[48vh] w-[90vw] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(120,150,80,0.18),transparent)] dark:bg-[radial-gradient(closest-side,rgba(163,207,114,0.12),transparent)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,#e8f2df_0%,var(--background)_65%)] dark:bg-[radial-gradient(90%_70%_at_50%_25%,#14240e_0%,var(--background)_70%)]" />
+          <div className="absolute left-1/2 top-[50%] h-[52vh] w-[92vw] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(90,145,50,0.22),transparent)] dark:bg-[radial-gradient(closest-side,rgba(142,198,81,0.18),transparent)]" />
         </div>
 
         {/* Center Content */}
         <div className="my-auto flex flex-col items-center text-center z-10 max-w-[340px] mx-auto">
-          <p className="inline-flex items-center gap-2 text-[13px] font-medium text-muted mb-3">
+          <p className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tint text-tint-foreground border border-primary/20 text-[12.5px] font-medium mb-3 shadow-xs">
             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            <HeroGreeting fallback="A small homegrown shop" />
+            <HeroGreeting fallback="100% Raw & Natural Homegrown" />
           </p>
 
           <h1 className="text-balance text-[clamp(40px,10.5vw,52px)] font-semibold leading-[0.96] tracking-[-0.045em]">
@@ -201,7 +201,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
             <Link
               href="/about"
               prefetch={true}
-              className="press btn-secondary h-12 px-7 text-[15px] font-medium active:scale-95 transition-transform"
+              className="press btn-secondary h-12 px-7 text-[15px] font-medium active:scale-95 transition-transform border border-line"
             >
               Our story
             </Link>
@@ -211,10 +211,10 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
         {/* Bottom CTA Button */}
         <button
           onClick={() => scrollToSlide(1)}
-          className="press mx-auto flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-2/85 backdrop-blur-sm border border-line text-[13px] font-medium text-muted hover:text-foreground shadow-sm z-10 active:scale-95 transition-transform"
+          className="press mx-auto flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-2/90 backdrop-blur-sm border border-primary/20 text-[13px] font-medium text-foreground/80 hover:text-foreground shadow-xs z-10 active:scale-95 transition-transform"
         >
           <span>Explore our shelf</span>
-          <ChevronDown className="h-4 w-4 animate-bounce" />
+          <ChevronDown className="h-4 w-4 text-primary animate-bounce" />
         </button>
       </section>
 
@@ -227,7 +227,8 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
         style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
       >
         <div className="absolute inset-0 -z-10 grain pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_20%,#f4f1ea_0%,var(--background)_70%)] dark:bg-[radial-gradient(90%_70%_at_50%_30%,#151a11_0%,#000_65%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_20%,#e8f2df_0%,var(--background)_70%)] dark:bg-[radial-gradient(90%_70%_at_50%_30%,#14240e_0%,var(--background)_70%)]" />
+          <div className="absolute left-1/2 top-[55%] h-[42vh] w-[85vw] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(90,145,50,0.16),transparent)] dark:bg-[radial-gradient(closest-side,rgba(142,198,81,0.15),transparent)]" />
         </div>
 
         {/* Top Text for Beat 2 */}
@@ -290,7 +291,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
                     opacity: currentOpacity,
                   }}
                 >
-                  <div className="group relative block h-full w-full overflow-hidden rounded-[22px] bg-surface-2 shadow-[0_26px_52px_-20px_rgba(0,0,0,0.65)] ring-1 ring-black/10 dark:ring-white/15">
+                  <div className="group relative block h-full w-full overflow-hidden rounded-[22px] bg-surface-2 shadow-[0_26px_52px_-20px_rgba(0,0,0,0.65)] ring-1 ring-primary/20 dark:ring-primary/30">
                     {p.image && (
                       <Image
                         src={p.image}
@@ -368,7 +369,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
           {/* Active Product Action Bar (Add to basket + stepper) */}
           {heroProducts[beat2ActiveIndex] && (
             <div className="mt-2.5 w-full max-w-[340px] px-1 z-10">
-              <div className="flex items-center justify-between gap-2.5 rounded-2xl bg-surface-2/95 backdrop-blur-md p-2.5 border border-line shadow-lg">
+              <div className="flex items-center justify-between gap-2.5 rounded-2xl bg-surface/95 dark:bg-surface/95 backdrop-blur-md p-2.5 border border-primary/20 shadow-md ring-1 ring-primary/10">
                 <div className="min-w-0 flex-1 pl-1">
                   <div className="flex items-center gap-1.5">
                     <h3 className="truncate text-[13.5px] font-semibold tracking-tight">{heroProducts[beat2ActiveIndex].name}</h3>
@@ -417,12 +418,12 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
         style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
       >
         <div className="absolute inset-0 -z-10 grain pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(90%_70%_at_50%_40%,rgba(163,207,114,0.08)_0%,var(--background)_70%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(90%_70%_at_50%_40%,rgba(90,145,50,0.16)_0%,var(--background)_70%)] dark:bg-[radial-gradient(90%_70%_at_50%_35%,rgba(142,198,81,0.14)_0%,var(--background)_70%)]" />
         </div>
 
         <div className="my-auto flex flex-col items-center text-center">
-          <span className="px-3 py-1 rounded-full bg-tint text-tint-foreground text-[12px] font-medium mb-6">
-            Small & Homegrown
+          <span className="px-3.5 py-1.5 rounded-full bg-tint text-tint-foreground border border-primary/20 text-[12px] font-medium mb-6 shadow-xs">
+            🌿 Small, Herbal & Homegrown
           </span>
 
           <p className="text-balance text-[clamp(25px,6.8vw,36px)] font-semibold leading-[1.2] tracking-[-0.03em] max-w-[20ch]">
@@ -565,7 +566,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
             <details key={f.q} className="group py-2.5" open={i === 0}>
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[14.5px] font-medium tracking-tight">
                 <span>{f.q}</span>
-                <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-surface-2 text-[14px] text-muted transition-transform duration-200 group-open:rotate-45">
+                <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-surface-2 group-open:bg-tint text-[14px] text-muted group-open:text-primary border border-primary/10 group-open:border-primary/25 transition-all duration-200 group-open:rotate-45">
                   +
                 </span>
               </summary>
@@ -589,16 +590,16 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
       {/* ======================================================== */}
       <section
         data-slide-index={5}
-        className="relative h-[100svh] w-full shrink-0 snap-start snap-always overflow-hidden flex flex-col justify-between pt-[max(4.5rem,10svh)] pb-5 px-5 bg-[#15190f] text-white"
+        className="relative h-[100svh] w-full shrink-0 snap-start snap-always overflow-hidden flex flex-col justify-between pt-[max(4.5rem,10svh)] pb-5 px-5 bg-[#0d1609] text-[#f0f5ec]"
         style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
       >
-        <div className="absolute inset-0 bg-[radial-gradient(75%_65%_at_50%_35%,rgba(163,207,114,0.15),transparent)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(75%_65%_at_50%_35%,rgba(142,198,81,0.22),transparent)] pointer-events-none" />
         <div className="grain absolute inset-0 pointer-events-none" />
 
         {/* Floating Jar Showcase */}
         {heroJarImage && (
           <div className="relative flex justify-center mt-2" style={{ perspective: 1000 }}>
-            <div className="relative aspect-square w-[160px] overflow-hidden rounded-[26px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9)] ring-1 ring-white/20">
+            <div className="relative aspect-square w-[160px] overflow-hidden rounded-[26px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9)] ring-1 ring-primary/40">
               <Image src={heroJarImage} alt="" fill sizes="160px" className="object-cover" />
               <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,0.3)_0%,transparent_35%)]" />
             </div>

@@ -99,7 +99,7 @@ export function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           <motion.div
             {...panelMotion}
             transition={reduceMotion ? { duration: 0 } : { duration: isMobile ? 0.4 : 0.26, ease: EASE_DRAWER }}
-            className="glass-strong relative w-full max-w-[440px] rounded-t-[30px] p-7 pb-[max(1.75rem,env(safe-area-inset-bottom))] sm:rounded-[30px]"
+            className="glass-strong relative w-full max-w-[440px] rounded-t-[30px] border border-primary/15 p-7 pb-[max(1.75rem,env(safe-area-inset-bottom))] shadow-xl sm:rounded-[30px]"
           >
             <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-foreground/15 sm:hidden" aria-hidden />
             <button
@@ -111,14 +111,14 @@ export function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               <X className="h-[18px] w-[18px]" />
             </button>
 
-            <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-black/5">
+            <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-white ring-2 ring-primary/25 shadow-sm">
               <Image src="/logo.png" alt="" width={40} height={36} className="h-10 w-10 object-contain" />
             </span>
             <h2 id="login-title" className="mt-5 text-[26px] font-semibold leading-[1.1] tracking-[-0.035em]">
-              Where should we <em className="font-serif font-normal italic">send it?</em>
+              Where should we <em className="font-serif font-normal italic text-primary">send it?</em>
             </h2>
             <p className="mt-2 text-[14.5px] leading-[1.5] text-muted">
-              We only use this to deliver your order. No password, nothing to remember.
+              We only use this to deliver your pure herbal order. No password, nothing to remember.
             </p>
 
             <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3" noValidate>

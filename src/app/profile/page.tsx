@@ -65,16 +65,16 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-[720px] px-6 pb-24 pt-32 sm:pt-40">
       <div className="enter flex items-center gap-5">
-        <span className="grid h-20 w-20 shrink-0 place-items-center rounded-full bg-[conic-gradient(from_200deg,var(--primary),#d9b45a,var(--primary))] p-[3px]">
-          <span className="grid h-full w-full place-items-center rounded-full bg-background text-[30px] font-semibold tracking-[-0.03em]">{initial}</span>
+        <span className="grid h-20 w-20 shrink-0 place-items-center rounded-full bg-[conic-gradient(from_200deg,var(--primary),#7da846,var(--primary))] p-[3px] shadow-sm">
+          <span className="grid h-full w-full place-items-center rounded-full bg-background text-[30px] font-semibold tracking-[-0.03em] text-primary">{initial}</span>
         </span>
         <div className="min-w-0">
           <h1 className="truncate text-[clamp(30px,4.4vw,48px)] font-semibold leading-[1] tracking-[-0.045em]">{user.name}</h1>
-          <p className="mt-1.5 text-[15px] text-muted">Saved on this device</p>
+          <p className="mt-1.5 text-[15px] text-muted">Saved on this device · Homegrown Orders</p>
         </div>
       </div>
 
-      <section className="enter glass mt-10 rounded-[28px] p-7" style={{ animationDelay: '80ms' }}>
+      <section className="enter glass mt-10 rounded-[28px] border border-primary/15 p-7 shadow-sm" style={{ animationDelay: '80ms' }}>
         <div className="flex items-center justify-between">
           <h2 className="text-[18px] font-semibold tracking-[-0.02em]">Delivery details</h2>
           {!isEditing && (

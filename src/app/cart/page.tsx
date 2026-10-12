@@ -83,8 +83,12 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-[1100px] px-6 pb-24 pt-32 sm:pt-36">
-      <h1 className="enter text-[clamp(40px,6vw,72px)] font-semibold leading-[0.95] tracking-[-0.05em]">
-        Your <em className="font-serif font-normal italic tracking-[-0.02em]">basket.</em>
+      <div className="enter inline-flex items-center gap-2 rounded-full border border-primary/20 bg-tint/80 px-3.5 py-1 text-[12.5px] font-medium text-primary backdrop-blur-md">
+        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+        Direct Herbal Order · Direct WhatsApp Dispatch
+      </div>
+      <h1 className="enter mt-3 text-[clamp(40px,6vw,72px)] font-semibold leading-[0.95] tracking-[-0.05em]">
+        Your <em className="font-serif font-normal italic tracking-[-0.02em] text-primary">basket.</em>
       </h1>
       <p className="enter mt-3 text-[16px] text-muted" style={{ animationDelay: '60ms' }}>
         {count} {count === 1 ? 'item' : 'items'}
@@ -103,20 +107,20 @@ export default function CartPage() {
                 transition={{ duration: 0.25, ease: EASE_OUT, layout: { duration: 0.3, ease: EASE_OUT } }}
                 className="flex items-center gap-4 py-5 sm:gap-6"
               >
-                <Link href={productHref(item)} className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[20px] bg-surface-2 sm:h-28 sm:w-28">
+                <Link href={productHref(item)} className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[20px] bg-surface-2 ring-1 ring-primary/15 sm:h-28 sm:w-28">
                   {item.image && <Image src={item.image} alt={item.name} fill sizes="112px" className="object-cover" />}
                 </Link>
 
                 <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
-                    <Link href={productHref(item)} className="block truncate text-[17px] font-semibold tracking-[-0.02em]">
+                    <Link href={productHref(item)} className="block truncate text-[17px] font-semibold tracking-[-0.02em] hover:text-primary transition-colors">
                       {item.name}
                     </Link>
                     <div className="mt-0.5 text-[14px] tabular-nums text-muted">₹{item.price} each</div>
                   </div>
 
                   <div className="flex items-center gap-4 sm:gap-6">
-                    <div className="flex h-9 items-center rounded-full bg-surface-2 px-1">
+                    <div className="flex h-9 items-center rounded-full bg-surface-2 border border-primary/10 px-1">
                       <button
                         onClick={() => (item.quantity === 1 ? remove(item) : updateQuantity(item.id, item.quantity - 1))}
                         className="press grid h-7 w-7 place-items-center rounded-full hover:bg-foreground/[0.07]"
@@ -134,7 +138,7 @@ export default function CartPage() {
                         <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
                       </button>
                     </div>
-                    <span className="w-16 text-right text-[16px] font-medium tabular-nums">₹{item.price * item.quantity}</span>
+                    <span className="w-16 text-right text-[16px] font-semibold tabular-nums text-primary">₹{item.price * item.quantity}</span>
                     <button
                       onClick={() => remove(item)}
                       className="press grid h-8 w-8 place-items-center rounded-full text-subtle hover:bg-foreground/[0.06] hover:text-foreground"
@@ -149,24 +153,29 @@ export default function CartPage() {
           </AnimatePresence>
         </ul>
 
-        <aside className="enter glass rounded-[28px] p-7 lg:sticky lg:top-28" style={{ animationDelay: '120ms' }}>
-          <h2 className="text-[20px] font-semibold tracking-[-0.025em]">Summary</h2>
+        <aside className="enter glass rounded-[28px] border border-primary/15 p-7 shadow-sm lg:sticky lg:top-28" style={{ animationDelay: '120ms' }}>
+          <div className="flex items-center justify-between">
+            <h2 className="text-[20px] font-semibold tracking-[-0.025em]">Summary</h2>
+            <span className="rounded-full bg-tint px-2.5 py-0.5 text-[11px] font-medium text-primary border border-primary/20">
+              100% Herbal & Raw
+            </span>
+          </div>
           <dl className="mt-6 space-y-3 text-[15px]">
             <div className="flex justify-between">
               <dt className="text-muted">Subtotal</dt>
-              <dd className="tabular-nums">₹{subtotal}</dd>
+              <dd className="tabular-nums font-medium">₹{subtotal}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted">Delivery</dt>
-              <dd className="text-primary">Free</dd>
+              <dd className="text-primary font-medium">Free</dd>
             </div>
           </dl>
           <div className="mt-5 flex items-baseline justify-between border-t border-line pt-5">
             <span className="text-[16px] font-medium">Total</span>
-            <span className="text-[28px] font-semibold tabular-nums tracking-[-0.03em]">₹{subtotal}</span>
+            <span className="text-[28px] font-semibold tabular-nums tracking-[-0.03em] text-primary">₹{subtotal}</span>
           </div>
 
-          <button onClick={handleCheckout} className="press btn-primary mt-7 h-[52px] w-full text-[16px]">
+          <button onClick={handleCheckout} className="press btn-primary mt-7 h-[52px] w-full text-[16px] shadow-sm">
             <WhatsAppIcon />
             {user ? 'Send order on WhatsApp' : 'Add your details to order'}
           </button>
