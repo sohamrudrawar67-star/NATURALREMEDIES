@@ -2,8 +2,9 @@
 
 import { useCartStore, CartItem, productHref } from '@/store/useCartStore'
 import { useUserStore } from '@/store/useUserStore'
+import { useOrderStore } from '@/store/useOrderStore'
 import { useHydrated } from '@/lib/useHydrated'
-import { Minus, Plus, X, ShoppingBag, Lock } from 'lucide-react'
+import { Minus, Plus, X, ShoppingBag, Lock, Clock, CheckCircle2 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -14,8 +15,9 @@ const EASE_OUT = [0.23, 1, 0.32, 1] as const
 
 export default function CartPage() {
   const hydrated = useHydrated()
-  const { items, removeItem, updateQuantity, addItem } = useCartStore()
+  const { items, removeItem, updateQuantity, addItem, clearCart } = useCartStore()
   const { user, openLoginModal } = useUserStore()
+  const { orders, addOrder } = useOrderStore()
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const count = items.reduce((sum, item) => sum + item.quantity, 0)
@@ -26,21 +28,55 @@ export default function CartPage() {
       return
     }
 
-    let message = `*New Order Received!*\n\n`
+    // 1. Record the order in previous orders history
+    const orderItems = items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image,
+      slug: item.slug,
+    }))
+
+    const newOrder = addOrder({
+      items: orderItems,
+      subtotal,
+      totalItems: count,
+      customerName: user.name,
+      customerPhone: user.phone,
+      customerAddress: user.address,
+      status: 'Sent on WhatsApp',
+    })
+
+    // 2. Prepare formatted WhatsApp message with Order ID
+    let message = `*New Order Received!* (#${newOrder.id})\n\n`
     message += `*Customer:* ${user.name}\n`
     message += `*Phone:* ${user.phone}\n`
     message += `*Delivery Address:*\n${user.address}\n\n`
-    message += `*Order Details:*\n`
+    message += `*Order Items:*\n`
 
     items.forEach((item) => {
       message += `- ${item.quantity}x ${item.name} (₹${item.price * item.quantity})\n`
     })
 
-    message += `\n*Total Amount:* ₹${subtotal}`
+    message += `\n*Total Amount:* ₹${subtotal}\n*Order ID:* #${newOrder.id}`
 
+    // 3. Clear the cart immediately so it's empty after order is sent
+    clearCart()
+
+    // 4. Notify customer that receipt has been saved
+    toast.success(`Order #${newOrder.id} sent on WhatsApp!`, {
+      description: 'Your basket has been cleared. View receipt in previous orders anytime.',
+      duration: 6000,
+    })
+
+    // 5. Open WhatsApp in app / web
     const encodedMessage = encodeURIComponent(message)
-    // External: opens the WhatsApp app / web with the order filled in
-    window.open(`${WHATSAPP_URL}?text=${encodedMessage}`, "_self", "noopener")
+    const whatsappUrl = `${WHATSAPP_URL}?text=${encodedMessage}`
+    const win = window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+      window.location.href = whatsappUrl
+    }
   }
 
   const remove = (item: CartItem) => {
@@ -74,9 +110,20 @@ export default function CartPage() {
         </span>
         <h1 className="mt-8 text-[clamp(32px,4vw,44px)] font-semibold tracking-[-0.04em]">Your basket is empty.</h1>
         <p className="mt-3 text-[16px] text-muted">When you add something, it&rsquo;ll wait here — even if you close the tab.</p>
-        <Link href="/products" className="press btn-primary mt-8 h-12 px-7 text-[15px]">
-          Go to the shop
-        </Link>
+        <div className="mt-8 flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center">
+          <Link href="/products" className="press btn-primary h-12 px-7 text-[15px] flex items-center justify-center">
+            Go to the shop
+          </Link>
+          {orders.length > 0 && (
+            <Link
+              href="/orders"
+              className="press btn-secondary h-12 px-6 text-[15px] flex items-center justify-center gap-2"
+            >
+              <Clock className="h-4 w-4 text-primary" />
+              View previous orders ({orders.length})
+            </Link>
+          )}
+        </div>
       </div>
     )
   }
@@ -90,9 +137,18 @@ export default function CartPage() {
       <h1 className="enter mt-3 text-[clamp(40px,6vw,72px)] font-semibold leading-[0.95] tracking-[-0.05em]">
         Your <em className="font-serif font-normal italic tracking-[-0.02em] text-primary">basket.</em>
       </h1>
-      <p className="enter mt-3 text-[16px] text-muted" style={{ animationDelay: '60ms' }}>
-        {count} {count === 1 ? 'item' : 'items'}
-      </p>
+      <div className="enter mt-3 flex items-center justify-between gap-4" style={{ animationDelay: '60ms' }}>
+        <p className="text-[16px] text-muted">
+          {count} {count === 1 ? 'item' : 'items'}
+        </p>
+        <Link
+          href="/orders"
+          className="press inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-surface px-3.5 py-1 text-[13px] font-medium text-muted hover:text-primary transition-colors"
+        >
+          <Clock className="h-3.5 w-3.5 text-primary" />
+          Previous orders{orders.length > 0 ? ` (${orders.length})` : ''}
+        </Link>
+      </div>
 
       <div className="mt-12 grid items-start gap-10 lg:grid-cols-[1fr_380px] lg:gap-14">
         <ul className="divide-y divide-line border-y border-line">

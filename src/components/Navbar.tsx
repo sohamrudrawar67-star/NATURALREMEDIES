@@ -5,9 +5,10 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { Search, ShoppingBag, User, X, Moon, Sun, ArrowRight } from 'lucide-react'
+import { Search, ShoppingBag, User, X, Moon, Sun, ArrowRight, Clock } from 'lucide-react'
 import { useCartStore, productHref } from '@/store/useCartStore'
 import { useUserStore } from '@/store/useUserStore'
+import { useOrderStore } from '@/store/useOrderStore'
 import dynamic from 'next/dynamic'
 
 // Loaded only when someone opens it, so it isn't in every page's first download
@@ -41,6 +42,7 @@ export function Navbar() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const cartCount = useCartStore((s) => s.items.reduce((acc, i) => acc + i.quantity, 0))
+  const orderCount = useOrderStore((s) => s.orders.length)
   const { user, isLoginModalOpen, openLoginModal, closeLoginModal } = useUserStore()
   // Keep the modal mounted after first open so its exit animation can play
   const [loginMounted, setLoginMounted] = useState(false)
@@ -197,6 +199,13 @@ export function Navbar() {
                 </IconButton>
               )}
 
+              <IconLink href="/orders" label={`Previous orders${orderCount > 0 ? ` (${orderCount})` : ''}`}>
+                <Clock className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                {hydrated && orderCount > 0 && (
+                  <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary" />
+                )}
+              </IconLink>
+
               <IconLink href="/cart" label={`Basket, ${cartCount} items`}>
                 <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.75} />
                 <AnimatePresence initial={false}>
@@ -340,6 +349,33 @@ export function Navbar() {
                     </Link>
                   </motion.div>
                 ))}
+                <motion.div
+                  initial={{ opacity: 0, transform: 'translateY(6px)' }}
+                  animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                  transition={{ duration: 0.3, delay: 0.04 + links.length * 0.035, ease: EASE_OUT }}
+                >
+                  <Link
+                    href="/orders"
+                    prefetch={true}
+                    onClick={() => setMenuOpen(false)}
+                    className={cn(
+                      'press flex items-center justify-between rounded-2xl px-4 py-3.5 text-[20px] font-medium tracking-[-0.02em]',
+                      isActive('/orders') ? 'bg-primary/10 text-primary font-semibold border border-primary/20' : ''
+                    )}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Clock className="h-5 w-5 text-primary" strokeWidth={1.8} />
+                      Previous orders
+                    </span>
+                    {orderCount > 0 ? (
+                      <span className="rounded-full bg-tint px-2.5 py-0.5 text-[12px] font-semibold text-primary border border-primary/20">
+                        {orderCount}
+                      </span>
+                    ) : (
+                      <ArrowRight className="h-4 w-4 text-primary" />
+                    )}
+                  </Link>
+                </motion.div>
                 <motion.button
                   initial={{ opacity: 0, transform: 'translateY(6px)' }}
                   animate={{ opacity: 1, transform: 'translateY(0px)' }}

@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { SITE_URL, absoluteUrl } from '@/lib/site'
 
 // Private areas. Everything else (pages and product photos) is open to every crawler.
-const disallow = ['/admin', '/api/', '/cart', '/profile']
+const disallow = ['/admin', '/api/', '/cart', '/profile', '/orders']
 const allow = ['/', '/api/products/'] // product photos live under /api/products/…/image
 
 /*

@@ -23,6 +23,7 @@ export function Footer() {
             links={[
               { href: '/products', label: 'All products' },
               { href: '/cart', label: 'Your basket' },
+              { href: '/orders', label: 'Previous orders' },
             ]}
           />
           <FooterCol

@@ -635,10 +635,12 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
 
         {/* Integrated Mobile Footer */}
         <div className="border-t border-white/10 pt-3 z-10 flex flex-col items-center gap-2 text-center">
-          <div className="flex items-center gap-4 text-[13px] text-white/70">
+          <div className="flex items-center gap-3.5 text-[13px] text-white/70 flex-wrap justify-center">
             <Link href="/products" prefetch={true} className="hover:text-white py-1">Shop</Link>
             <span>•</span>
             <Link href="/cart" prefetch={true} className="hover:text-white py-1">Basket</Link>
+            <span>•</span>
+            <Link href="/orders" prefetch={true} className="hover:text-white py-1 text-primary">Orders</Link>
             <span>•</span>
             <Link href="/about" prefetch={true} className="hover:text-white py-1">Our story</Link>
             <span>•</span>
