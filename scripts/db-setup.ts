@@ -57,6 +57,13 @@ select id, image, coalesce(image_type, 'image/jpeg'), 0
 from product
 where image is not null
 and not exists (select 1 from product_image pi where pi.product_id = product.id);
+
+-- Site settings (e.g. festive campaign config)
+create table if not exists site_setting (
+  key        text primary key,
+  value      jsonb not null,
+  updated_at timestamptz not null default now()
+);
 `
 
 async function main() {

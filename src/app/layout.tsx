@@ -83,14 +83,18 @@ export const viewport: Viewport = {
   ],
 };
 
+import { getFestivalConfig } from '@/lib/festival-server';
+
 // Runs before paint so the page never flashes the wrong theme.
 const themeScript = `(function(){try{var t=localStorage.getItem('theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const festivalConfig = await getFestivalConfig();
+
   return (
     <html lang="en-IN" suppressHydrationWarning>
       <head>
@@ -104,7 +108,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <NavigationProgress />
         </Suspense>
-        <Navbar />
+        <Navbar festivalConfig={festivalConfig} />
         <main className="flex-grow">{children}</main>
         <Footer />
         <LazyToaster />

@@ -18,16 +18,23 @@ import { Product } from '@/store/useCartStore'
 import { useHydrated } from '@/lib/useHydrated'
 import { setTheme, useIsDark } from '@/lib/theme'
 import { cn } from '@/lib/utils'
+import type { FestivalConfig } from '@/lib/festival'
+import { FESTIVAL_THEMES } from '@/lib/festival'
+import { FestiveBanner } from '@/components/FestiveBanner'
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const
 
-const LINKS = [
+const DEFAULT_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/products', label: 'Shop' },
   { href: '/about', label: 'Our story' },
 ]
 
-export function Navbar() {
+interface NavbarProps {
+  festivalConfig?: FestivalConfig | null
+}
+
+export function Navbar({ festivalConfig }: NavbarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const hydrated = useHydrated()
@@ -100,7 +107,19 @@ export function Navbar() {
     ? allProducts.filter((p) => p.name.toLowerCase().includes(query.toLowerCase().trim())).slice(0, 5)
     : []
 
-  const links = LINKS
+  const currentTheme = festivalConfig?.isEnabled
+    ? FESTIVAL_THEMES[festivalConfig.festivalId] || FESTIVAL_THEMES.general
+    : null
+
+  const links = festivalConfig?.isEnabled && currentTheme
+    ? [
+        { href: '/', label: 'Home' },
+        { href: '/products', label: 'Shop' },
+        { href: '/festival', label: `${currentTheme.emoji} Offers` },
+        { href: '/about', label: 'Our story' },
+      ]
+    : DEFAULT_LINKS
+
   const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href))
   const panelOpen = searchOpen || menuOpen
 
@@ -124,7 +143,12 @@ export function Navbar() {
         )}
       </AnimatePresence>
 
-      <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-3 pt-3 sm:pt-4 pointer-events-none">
+      <header className="fixed inset-x-0 top-0 z-50 flex flex-col items-center px-3 pt-2 sm:pt-2.5 pointer-events-none gap-1.5">
+        {festivalConfig?.isEnabled && (
+          <div className="w-full max-w-[1040px] pointer-events-auto">
+            <FestiveBanner config={festivalConfig} />
+          </div>
+        )}
         <div className="w-full max-w-[1040px] pointer-events-auto">
           <nav
             className={cn(

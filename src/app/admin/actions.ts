@@ -272,3 +272,19 @@ export async function changeMyPassword(input: { current: string; next: string })
     return undefined
   })
 }
+
+import { FestivalConfig } from '@/lib/festival'
+import { getFestivalConfig, saveFestivalConfig } from '@/lib/festival-server'
+
+export async function getFestivalSettingsAction(): Promise<Result<FestivalConfig>> {
+  return guarded(async () => {
+    return await getFestivalConfig()
+  })
+}
+
+export async function saveFestivalSettingsAction(config: FestivalConfig): Promise<Result<FestivalConfig>> {
+  return guarded(async () => {
+    await saveFestivalConfig(config)
+    return config
+  }, { touchesCatalog: true })
+}

@@ -17,11 +17,20 @@ import {
   createAdmin,
   removeAdmin,
   changeMyPassword,
+  getFestivalSettingsAction,
+  saveFestivalSettingsAction,
   type AdminAccount,
 } from '@/app/admin/actions'
 
 import { PRODUCT_CATEGORIES, DEFAULT_CATEGORY } from '@/lib/categories'
 import { calculateDiscount } from '@/store/useCartStore'
+import {
+  FestivalConfig,
+  FestivalId,
+  FESTIVAL_THEMES,
+  DEFAULT_FESTIVAL_CONFIG,
+} from '@/lib/festival'
+import { Sparkles, Globe, ExternalLink } from 'lucide-react'
 
 const ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif'
 
@@ -56,6 +65,10 @@ export function Dashboard({ me }: { me: AdminUser }) {
   const [nextPw, setNextPw] = useState('')
   const [changingPw, setChangingPw] = useState(false)
 
+  // Festive Campaign State
+  const [festivalConfig, setFestivalConfig] = useState<FestivalConfig>(DEFAULT_FESTIVAL_CONFIG)
+  const [savingFestival, setSavingFestival] = useState(false)
+
   // Object URLs for new image previews
   const newImagePreviews = useMemo(
     () => newImageFiles.map((file) => ({ file, url: URL.createObjectURL(file) })),
@@ -79,7 +92,32 @@ export function Dashboard({ me }: { me: AdminUser }) {
       setLoaded(true)
     })
     listAdmins().then((res) => res.ok && setAdmins(res.data ?? []))
+    getFestivalSettingsAction().then((res) => {
+      if (res.ok && res.data) setFestivalConfig(res.data)
+    })
   }, [])
+
+  const handleSaveFestival = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSavingFestival(true)
+    try {
+      const res = await saveFestivalSettingsAction(festivalConfig)
+      if (res.ok && res.data) {
+        setFestivalConfig(res.data)
+        toast.success(
+          res.data.isEnabled
+            ? 'Festive campaign is now LIVE across the website!'
+            : 'Festive campaign turned OFF.'
+        )
+      } else {
+        toast.error(!res.ok ? res.error : 'Failed to update festive settings.')
+      }
+    } catch {
+      toast.error('Failed to update festive settings.')
+    } finally {
+      setSavingFestival(false)
+    }
+  }
 
   /** Shows the error; if the session is gone, sends the admin back to sign in. */
   const fail = (error: string) => {
@@ -591,10 +629,159 @@ export function Dashboard({ me }: { me: AdminUser }) {
           </form>
         </section>
 
-        {/* ADMINS */}
-        <section className="enter glass h-fit rounded-[28px] p-5 sm:p-7" style={{ animationDelay: '120ms' }}>
-          <h2 className="text-[20px] font-semibold tracking-[-0.025em]">Admins</h2>
-          <p className="mt-1 text-[14px] text-muted">Each signs in at /admin with their own email and password.</p>
+        {/* RIGHT COLUMN: FESTIVE CAMPAIGN & ADMINS */}
+        <div className="flex flex-col gap-5 lg:gap-6">
+          {/* FESTIVE CAMPAIGN CONTROLS */}
+          <section className="enter glass h-fit rounded-[28px] p-5 sm:p-7 border border-primary/20 shadow-xs" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center justify-between border-b border-line pb-4">
+              <div className="flex items-center gap-2">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-tint text-[16px] border border-primary/20">
+                  {FESTIVAL_THEMES[festivalConfig.festivalId]?.emoji || '✨'}
+                </span>
+                <div>
+                  <h2 className="text-[18px] font-semibold tracking-[-0.025em]">Festive Campaign</h2>
+                  <p className="text-[12px] text-muted">Theme & discounted showcase</p>
+                </div>
+              </div>
+              <a
+                href="/festival"
+                target="_blank"
+                rel="noreferrer"
+                className="press inline-flex items-center gap-1 rounded-full bg-surface-2 px-2.5 py-1 text-[11.5px] font-medium text-foreground/80 hover:text-foreground border border-line"
+              >
+                <span>Preview page</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+
+            <form onSubmit={handleSaveFestival} className="mt-4 space-y-4">
+              {/* Campaign Toggle */}
+              <div className="flex items-center justify-between rounded-2xl bg-surface-2/60 p-3.5 border border-line">
+                <div>
+                  <p className="text-[13.5px] font-semibold">Festive Mode</p>
+                  <p className="text-[12px] text-muted">
+                    {festivalConfig.isEnabled ? 'Theme is currently LIVE across the site' : 'Disabled (Standard theme)'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFestivalConfig((c) => ({ ...c, isEnabled: !c.isEnabled }))}
+                  className={`press inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold transition-colors ${
+                    festivalConfig.isEnabled
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-surface text-muted border border-line hover:text-foreground'
+                  }`}
+                >
+                  <span className={`h-2 w-2 rounded-full ${festivalConfig.isEnabled ? 'bg-white animate-pulse' : 'bg-muted'}`} />
+                  <span>{festivalConfig.isEnabled ? 'ACTIVE' : 'OFF'}</span>
+                </button>
+              </div>
+
+              {/* Festival Selector */}
+              <div>
+                <label htmlFor="festival-select" className="block text-[13px] font-medium text-foreground mb-1">
+                  Select Festival
+                </label>
+                <select
+                  id="festival-select"
+                  value={festivalConfig.festivalId}
+                  onChange={(e) => setFestivalConfig((c) => ({ ...c, festivalId: e.target.value as FestivalId }))}
+                  className="field cursor-pointer"
+                >
+                  {Object.values(FESTIVAL_THEMES).map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.emoji} {t.name} ({t.hindiName})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Theme Live Preview Pill */}
+              {(() => {
+                const currentTheme = FESTIVAL_THEMES[festivalConfig.festivalId] || FESTIVAL_THEMES.general
+                return (
+                  <div className="rounded-2xl bg-surface-2/40 p-3 border border-line text-[12px] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-foreground/80">Active Theme Preset:</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${currentTheme.tagColor}`}>
+                        {currentTheme.emoji} {currentTheme.hindiName}
+                      </span>
+                    </div>
+                    <p className="text-muted text-[11.5px] line-clamp-2">{currentTheme.defaultSubtitle}</p>
+                  </div>
+                )
+              })()}
+
+              {/* Custom Headline */}
+              <div>
+                <label className="block text-[12.5px] font-medium text-foreground mb-1">
+                  Custom Headline <span className="text-muted font-normal">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  maxLength={100}
+                  value={festivalConfig.customTitle || ''}
+                  onChange={(e) => setFestivalConfig((c) => ({ ...c, customTitle: e.target.value }))}
+                  placeholder={FESTIVAL_THEMES[festivalConfig.festivalId]?.defaultTitle}
+                  className="field text-[13.5px]"
+                />
+              </div>
+
+              {/* Custom Subtitle */}
+              <div>
+                <label className="block text-[12.5px] font-medium text-foreground mb-1">
+                  Custom Subtitle / Message <span className="text-muted font-normal">(optional)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  maxLength={250}
+                  value={festivalConfig.customSubtitle || ''}
+                  onChange={(e) => setFestivalConfig((c) => ({ ...c, customSubtitle: e.target.value }))}
+                  placeholder={FESTIVAL_THEMES[festivalConfig.festivalId]?.defaultSubtitle}
+                  className="field text-[13px] resize-none"
+                />
+              </div>
+
+              {/* Top Announcement Ribbon Text */}
+              <div>
+                <label className="block text-[12.5px] font-medium text-foreground mb-1">
+                  Site-wide Top Ribbon Notice <span className="text-muted font-normal">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  maxLength={150}
+                  value={festivalConfig.bannerMessage || ''}
+                  onChange={(e) => setFestivalConfig((c) => ({ ...c, bannerMessage: e.target.value }))}
+                  placeholder={FESTIVAL_THEMES[festivalConfig.festivalId]?.bannerNotice}
+                  className="field text-[13.5px]"
+                />
+              </div>
+
+              {/* Category Tip Notice */}
+              <div className="rounded-xl bg-tint/60 p-2.5 border border-primary/20 text-[11.5px] text-foreground/80 leading-snug">
+                💡 <strong>Tip:</strong> Products in the <strong>Festival Celebrations</strong> category will automatically appear on the festive discount page.
+              </div>
+
+              <button
+                type="submit"
+                disabled={savingFestival}
+                className="press btn-primary h-11 w-full text-[14.5px] font-semibold disabled:opacity-60 shadow-xs"
+              >
+                {savingFestival ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+                  </span>
+                ) : (
+                  'Save & Publish Festive Campaign'
+                )}
+              </button>
+            </form>
+          </section>
+
+          {/* ADMINS */}
+          <section className="enter glass h-fit rounded-[28px] p-5 sm:p-7" style={{ animationDelay: '120ms' }}>
+            <h2 className="text-[20px] font-semibold tracking-[-0.025em]">Admins</h2>
+            <p className="mt-1 text-[14px] text-muted">Each signs in at /admin with their own email and password.</p>
 
           <ul className="mt-5 divide-y divide-line">
             {admins.map((a) => (
@@ -639,6 +826,7 @@ export function Dashboard({ me }: { me: AdminUser }) {
           </form>
         </section>
       </div>
+    </div>
 
       {/* MANAGE PRODUCTS */}
       <section className="mt-14 sm:mt-16">

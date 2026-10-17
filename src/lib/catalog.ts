@@ -61,6 +61,19 @@ export async function listProducts(): Promise<Product[]> {
   return rows.map(toProduct)
 }
 
+export async function listFestivalProducts(): Promise<Product[]> {
+  const { rows } = await pool.query<ProductRow>(
+    `${SELECT} where p.category = 'Festival Celebrations' order by p.sort_order asc, p.price asc, p.created_at asc`
+  )
+  if (rows.length > 0) return rows.map(toProduct)
+
+  // Graceful fallback: products with discount
+  const { rows: fallback } = await pool.query<ProductRow>(
+    `${SELECT} where p.cut_price is not null and p.cut_price > p.price order by p.sort_order asc, p.price asc limit 12`
+  )
+  return fallback.map(toProduct)
+}
+
 /** Looks a product up by its slug ("honey-500g") or, for old links, its id. */
 export async function findProduct(slugOrId: string): Promise<Product | null> {
   if (!ID_RE.test(slugOrId)) return null
