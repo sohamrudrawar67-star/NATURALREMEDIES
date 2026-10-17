@@ -1,6 +1,6 @@
 import type { Product } from '@/store/useCartStore'
 import { productHref } from '@/store/useCartStore'
-import { SITE_DESCRIPTION, SITE_NAME, STORE_WHATSAPP, WHATSAPP_URL, absoluteUrl } from './site'
+import { SITE_DESCRIPTION, SITE_NAME, STORE_ADDRESS, STORE_WHATSAPP, WHATSAPP_URL, absoluteUrl } from './site'
 
 /*
  * Structured data (schema.org JSON-LD). Search engines and AI assistants read this to
@@ -22,6 +22,13 @@ export function organizationLd() {
     description: SITE_DESCRIPTION,
     areaServed: { '@type': 'Country', name: 'India' },
     currenciesAccepted: 'INR',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: `${STORE_ADDRESS.building}, ${STORE_ADDRESS.landmark}`,
+      addressLocality: `${STORE_ADDRESS.locality}, ${STORE_ADDRESS.city}`,
+      addressRegion: STORE_ADDRESS.state,
+      addressCountry: 'IN',
+    },
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',

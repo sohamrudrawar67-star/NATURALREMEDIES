@@ -5,10 +5,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'motion/react'
-import { ArrowRight, ShoppingBag, ChevronDown, ChevronLeft, ChevronRight, Check, MessageCircle } from 'lucide-react'
+import { ArrowRight, ShoppingBag, ChevronDown, ChevronLeft, ChevronRight, Check, MessageCircle, MapPin } from 'lucide-react'
 import { Product, productHref, calculateDiscount } from '@/store/useCartStore'
 import { CartQuantityButton } from '@/components/CartQuantityButton'
-import { WHATSAPP_URL } from '@/lib/site'
+import { WHATSAPP_URL, STORE_ADDRESS } from '@/lib/site'
 import { HeroGreeting } from '@/components/HeroGreeting'
 
 interface MobileHomeLockProps {
@@ -673,6 +673,15 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
 
         {/* Integrated Mobile Footer */}
         <div className="border-t border-white/10 pt-3 z-10 flex flex-col items-center gap-2 text-center">
+          <a
+            href={STORE_ADDRESS.mapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[11.5px] text-white/85 hover:text-white transition-colors"
+          >
+            <MapPin className="h-3 w-3 text-primary" />
+            <span>Store: Bavdhan, Pune, Maharashtra ↗</span>
+          </a>
           <div className="flex items-center gap-3.5 text-[13px] text-white/70 flex-wrap justify-center">
             <Link href="/products" prefetch={true} className="hover:text-white py-1">Shop</Link>
             <span>•</span>
@@ -685,7 +694,7 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
             <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="hover:text-white py-1">WhatsApp</a>
           </div>
           <div className="text-[11.5px] text-white/40">
-            © {new Date().getFullYear()} Natural Remedies • Homegrown
+            © {new Date().getFullYear()} Natural Remedies • Pune, India
           </div>
         </div>
       </section>

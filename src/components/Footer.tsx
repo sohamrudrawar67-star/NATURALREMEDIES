@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { WHATSAPP_URL } from '@/lib/site'
+import { MapPin, ExternalLink } from 'lucide-react'
+import { STORE_ADDRESS, WHATSAPP_URL } from '@/lib/site'
 
 export function Footer() {
   return (
     <footer className="relative mt-auto overflow-hidden border-t border-primary/15 bg-surface-2/40">
       <div className="mx-auto max-w-[1200px] px-6 pb-8 pt-16">
-        <div className="grid gap-10 sm:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_0.8fr_0.8fr_1.4fr]">
           <div>
             <div className="flex items-center gap-2.5">
               <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-primary/20 shadow-xs">
@@ -34,6 +35,31 @@ export function Footer() {
               { href: '/profile', label: 'Your details' },
             ]}
           />
+          <div className="flex flex-col">
+            <h2 className="flex items-center gap-1.5 text-[12.5px] font-semibold text-subtle tracking-wide uppercase">
+              <MapPin className="h-3.5 w-3.5 text-primary" />
+              <span>Store Location</span>
+            </h2>
+            <div className="mt-3 rounded-2xl bg-surface/80 p-4 ring-1 ring-primary/15 backdrop-blur-xs space-y-2">
+              <p className="text-[13px] font-semibold text-foreground leading-snug">
+                {STORE_ADDRESS.name}
+              </p>
+              <p className="text-[12.5px] leading-[1.5] text-muted">
+                {STORE_ADDRESS.building},<br />
+                {STORE_ADDRESS.landmark},<br />
+                {STORE_ADDRESS.locality}, {STORE_ADDRESS.city}, {STORE_ADDRESS.state}
+              </p>
+              <a
+                href={STORE_ADDRESS.mapsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="press inline-flex items-center gap-1 text-[12px] font-semibold text-primary hover:underline pt-1"
+              >
+                <span>View on Google Maps</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          </div>
         </div>
 
         <div

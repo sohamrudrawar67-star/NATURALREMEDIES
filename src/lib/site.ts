@@ -7,6 +7,20 @@ export const SITE_TAGLINE = 'Good things, kept simple'
 export const SITE_DESCRIPTION =
   'Natural Remedies is a small homegrown brand in India selling natural everyday goods like pure honey. Order in a minute on WhatsApp, with free delivery.'
 
+export const STORE_ADDRESS = {
+  name: 'NATURAL REMEDIES AND ORGANIC PRODUCTS STORE',
+  building: 'Amey Co-operative Housing society, Flat No. 10 4th floor',
+  landmark: 'Above Hotel MH 12, NDA Pashan Rd',
+  locality: 'Bavdhan',
+  city: 'Pune',
+  state: 'Maharashtra',
+  country: 'India',
+  full: 'NATURAL REMEDIES AND ORGANIC PRODUCTS STORE, Amey Co-operative Housing society, Flat No. 10 4th floor, Above Hotel MH 12, NDA Pashan Rd, Bavdhan, Pune, Maharashtra',
+  mapsUrl:
+    'https://www.google.com/maps/search/?api=1&query=' +
+    encodeURIComponent('NATURAL REMEDIES AND ORGANIC PRODUCTS STORE, Amey Co-operative Housing society, Above Hotel MH 12, NDA Pashan Rd, Bavdhan, Pune, Maharashtra'),
+}
+
 /**
  * Public site URL, used for canonical links, the sitemap and structured data.
  * Set NEXT_PUBLIC_SITE_URL to your real domain in production (e.g. https://naturalremedies.in).
