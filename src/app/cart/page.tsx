@@ -2,9 +2,9 @@
 
 import { useCartStore, CartItem, productHref } from '@/store/useCartStore'
 import { useUserStore } from '@/store/useUserStore'
-import { useOrderStore } from '@/store/useOrderStore'
+import { useOrderStore, calculateCourierFee } from '@/store/useOrderStore'
 import { useHydrated } from '@/lib/useHydrated'
-import { Minus, Plus, X, ShoppingBag, Lock, Clock, CheckCircle2 } from 'lucide-react'
+import { Minus, Plus, X, ShoppingBag, Lock, Clock, CheckCircle2, Truck } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -21,6 +21,8 @@ export default function CartPage() {
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const count = items.reduce((sum, item) => sum + item.quantity, 0)
+  const courierCharge = calculateCourierFee(subtotal)
+  const total = subtotal + courierCharge
 
   const handleCheckout = () => {
     if (!user) {
@@ -41,6 +43,8 @@ export default function CartPage() {
     const newOrder = addOrder({
       items: orderItems,
       subtotal,
+      deliveryFee: courierCharge,
+      total,
       totalItems: count,
       customerName: user.name,
       customerPhone: user.phone,
@@ -48,7 +52,7 @@ export default function CartPage() {
       status: 'Sent on WhatsApp',
     })
 
-    // 2. Prepare formatted WhatsApp message with Order ID
+    // 2. Prepare formatted WhatsApp message with Order ID and Courier breakdown
     let message = `*New Order Received!* (#${newOrder.id})\n\n`
     message += `*Customer:* ${user.name}\n`
     message += `*Phone:* ${user.phone}\n`
@@ -59,7 +63,13 @@ export default function CartPage() {
       message += `- ${item.quantity}x ${item.name} (₹${item.price * item.quantity})\n`
     })
 
-    message += `\n*Total Amount:* ₹${subtotal}\n*Order ID:* #${newOrder.id}`
+    message += `\n*Subtotal:* ₹${subtotal}\n`
+    if (courierCharge > 0) {
+      message += `*Courier Delivery Charge:* ₹${courierCharge} (cart above ₹500)\n`
+    } else {
+      message += `*Courier Delivery:* Free\n`
+    }
+    message += `*Total Amount:* ₹${total}\n*Order ID:* #${newOrder.id}`
 
     // 3. Clear the cart immediately so it's empty after order is sent
     clearCart()
@@ -221,14 +231,51 @@ export default function CartPage() {
               <dt className="text-muted">Subtotal</dt>
               <dd className="tabular-nums font-medium">₹{subtotal}</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-muted">Delivery</dt>
-              <dd className="text-primary font-medium">Free</dd>
+            <div className="flex justify-between items-center">
+              <dt className="flex items-center gap-1.5 text-muted">
+                <span>Courier Delivery</span>
+                {courierCharge > 0 ? (
+                  <span className="rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10.5px] font-semibold px-2 py-0.2">
+                    Cart &gt; ₹500
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[10.5px] font-semibold px-2 py-0.2">
+                    Free
+                  </span>
+                )}
+              </dt>
+              <dd className="tabular-nums font-semibold">
+                {courierCharge > 0 ? (
+                  <span>₹{courierCharge}</span>
+                ) : (
+                  <span className="text-primary font-medium">Free</span>
+                )}
+              </dd>
             </div>
           </dl>
+
+          {/* Courier Policy Notice */}
+          <div className="mt-4">
+            {courierCharge > 0 ? (
+              <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-3 text-[12px] text-amber-800 dark:text-amber-200 flex items-start gap-2">
+                <Truck className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                <span>
+                  <strong>Courier charge added:</strong> A nominal ₹70 courier fee is added on orders above ₹500.
+                </span>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-primary/20 bg-tint/60 p-3 text-[12px] text-primary flex items-start gap-2">
+                <Truck className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Free Delivery:</strong> Orders up to ₹500 ship free (₹70 courier charge applies above ₹500).
+                </span>
+              </div>
+            )}
+          </div>
+
           <div className="mt-5 flex items-baseline justify-between border-t border-line pt-5">
             <span className="text-[16px] font-medium">Total</span>
-            <span className="text-[28px] font-semibold tabular-nums tracking-[-0.03em] text-primary">₹{subtotal}</span>
+            <span className="text-[28px] font-semibold tabular-nums tracking-[-0.03em] text-primary">₹{total}</span>
           </div>
 
           <button onClick={handleCheckout} className="press btn-primary mt-7 h-[52px] w-full text-[16px] shadow-sm">

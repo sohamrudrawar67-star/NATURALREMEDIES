@@ -3,9 +3,10 @@
 import { useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'motion/react'
 import { ArrowRight, ShoppingBag, ChevronDown, ChevronLeft, ChevronRight, Check, MessageCircle } from 'lucide-react'
-import { Product, productHref } from '@/store/useCartStore'
+import { Product, productHref, calculateDiscount } from '@/store/useCartStore'
 import { CartQuantityButton } from '@/components/CartQuantityButton'
 import { WHATSAPP_URL } from '@/lib/site'
 import { HeroGreeting } from '@/components/HeroGreeting'
@@ -18,6 +19,7 @@ interface MobileHomeLockProps {
 const EASE_OUT = [0.23, 1, 0.32, 1] as const
 
 export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
+  const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
   const [activeSlide, setActiveSlide] = useState(0)
   const [scrollRatio, setScrollRatio] = useState(0)
@@ -280,10 +282,18 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
                 : 0.86 + standupProgress * 0.05
               const currentOpacity = isSelected ? 1 : 0.72
 
+              const discount = calculateDiscount(p.price, p.cutPrice)
+
               return (
                 <div
                   key={p.id}
-                  onClick={() => setBeat2ActiveIndex(i)}
+                  onClick={() => {
+                    if (isSelected) {
+                      router.push(productHref(p))
+                    } else {
+                      setBeat2ActiveIndex(i)
+                    }
+                  }}
                   className="absolute inset-0 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-transform cursor-pointer"
                   style={{
                     transform: `translate3d(${currentX}px, ${currentY}px, ${currentZ}px) rotateX(${currentRx}deg) rotateY(${currentRy}deg) rotateZ(${currentRz}deg) scale(${currentScale})`,
@@ -304,6 +314,13 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
                     )}
                     <span className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(160deg,rgba(255,255,255,0.3)_0%,transparent_35%)]" />
 
+                    {/* Attention Discount Badge */}
+                    {discount > 0 && (
+                      <div className="absolute right-2 top-2 z-10 rounded-full bg-emerald-600 px-2 py-0.5 text-[9.5px] font-bold text-white shadow-xs">
+                        {discount}% OFF
+                      </div>
+                    )}
+
                     {/* Product Name & Price Tag */}
                     <div
                       className={`absolute inset-x-2 bottom-2 flex items-center justify-between gap-1.5 rounded-xl px-2.5 py-1.5 shadow-sm transition-all duration-300 ${
@@ -317,7 +334,12 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
                       }}
                     >
                       <span className="truncate text-[12px] font-semibold">{p.name}</span>
-                      <span className="shrink-0 text-[12px] tabular-nums font-semibold text-primary">₹{p.price}</span>
+                      <div className="flex items-baseline gap-1 shrink-0">
+                        <span className="text-[12px] tabular-nums font-semibold text-primary">₹{p.price}</span>
+                        {p.cutPrice && p.cutPrice > p.price && (
+                          <span className="text-[10px] line-through text-muted tabular-nums">₹{p.cutPrice}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -363,40 +385,56 @@ export function MobileHomeLock({ products, faqs = [] }: MobileHomeLockProps) {
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
-            <span className="text-[11px] text-muted tracking-tight">Swipe or tap jars sideways</span>
+            <span className="text-[11px] text-muted tracking-tight">Tap selected jar or Details to open</span>
           </div>
 
           {/* Active Product Action Bar (Add to basket + stepper) */}
-          {heroProducts[beat2ActiveIndex] && (
-            <div className="mt-2.5 w-full max-w-[340px] px-1 z-10">
-              <div className="flex items-center justify-between gap-2.5 rounded-2xl bg-surface/95 dark:bg-surface/95 backdrop-blur-md p-2.5 border border-primary/20 shadow-md ring-1 ring-primary/10">
-                <div className="min-w-0 flex-1 pl-1">
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="truncate text-[13.5px] font-semibold tracking-tight">{heroProducts[beat2ActiveIndex].name}</h3>
-                    {heroProducts[beat2ActiveIndex].isOutOfStock && (
-                      <span className="shrink-0 rounded-full bg-danger/10 px-1.5 py-0.5 text-[10px] font-medium text-danger">
-                        Sold out
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[13.5px] font-bold text-primary tabular-nums">₹{heroProducts[beat2ActiveIndex].price}</span>
-                    <span className="text-[10px] text-muted">·</span>
-                    <Link
-                      href={productHref(heroProducts[beat2ActiveIndex])}
-                      prefetch={true}
-                      className="text-[11px] font-medium text-muted hover:text-foreground flex items-center gap-0.5 active:opacity-75"
-                    >
-                      Details <ArrowRight className="h-2.5 w-2.5" />
+          {heroProducts[beat2ActiveIndex] && (() => {
+            const activeProduct = heroProducts[beat2ActiveIndex]
+            const activeDiscount = calculateDiscount(activeProduct.price, activeProduct.cutPrice)
+            return (
+              <div className="mt-2.5 w-full max-w-[340px] px-1 z-10">
+                <div className="flex items-center justify-between gap-2.5 rounded-2xl bg-surface/95 dark:bg-surface/95 backdrop-blur-md p-2.5 border border-primary/20 shadow-md ring-1 ring-primary/10">
+                  <div className="min-w-0 flex-1 pl-1">
+                    <Link href={productHref(activeProduct)} prefetch={true} className="block group">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="truncate text-[13.5px] font-semibold tracking-tight group-hover:text-primary transition-colors">
+                          {activeProduct.name}
+                        </h3>
+                        {activeProduct.isOutOfStock && (
+                          <span className="shrink-0 rounded-full bg-danger/10 px-1.5 py-0.5 text-[10px] font-medium text-danger">
+                            Sold out
+                          </span>
+                        )}
+                      </div>
                     </Link>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                      <span className="text-[13.5px] font-bold text-primary tabular-nums">₹{activeProduct.price}</span>
+                      {activeProduct.cutPrice && activeProduct.cutPrice > activeProduct.price && (
+                        <span className="text-[11px] line-through text-muted tabular-nums">₹{activeProduct.cutPrice}</span>
+                      )}
+                      {activeDiscount > 0 && (
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                          {activeDiscount}% OFF
+                        </span>
+                      )}
+                      <span className="text-[10px] text-muted">·</span>
+                      <Link
+                        href={productHref(activeProduct)}
+                        prefetch={true}
+                        className="text-[11px] font-medium text-primary hover:underline flex items-center gap-0.5"
+                      >
+                        Details <ArrowRight className="h-2.5 w-2.5" />
+                      </Link>
+                    </div>
                   </div>
-                </div>
-                <div className="shrink-0">
-                  <CartQuantityButton product={heroProducts[beat2ActiveIndex]} />
+                  <div className="shrink-0">
+                    <CartQuantityButton product={activeProduct} />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
         </div>
 
         {/* Bottom CTA Button */}

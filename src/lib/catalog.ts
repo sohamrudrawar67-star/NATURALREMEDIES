@@ -11,9 +11,12 @@ type ProductRow = {
   id: string
   name: string
   price: number
+  cut_price: number | null
+  category: string | null
   description: string
   is_out_of_stock: boolean
   has_image: boolean
+  image_count: number | string
   version: string
   slug: string | null
   updated_at: Date
@@ -22,45 +25,69 @@ type ProductRow = {
 export const ID_RE = /^[A-Za-z0-9_-]{1,64}$/
 
 const SELECT = `
-  select id, name, price, description, is_out_of_stock,
-         image is not null as has_image, slug, updated_at,
-         extract(epoch from updated_at)::bigint::text as version
-  from product`
+  select p.id, p.name, p.price, p.cut_price, p.category, p.description, p.is_out_of_stock,
+         (p.image is not null or exists(select 1 from product_image pi where pi.product_id = p.id)) as has_image,
+         coalesce(
+           (select count(*)::int from product_image pi where pi.product_id = p.id),
+           case when p.image is not null then 1 else 0 end
+         ) as image_count,
+         p.slug, p.updated_at,
+         extract(epoch from p.updated_at)::bigint::text as version
+  from product p`
 
 function toProduct(row: ProductRow): Product {
+  const count = Number(row.image_count || (row.has_image ? 1 : 0))
+  const images = count > 0
+    ? Array.from({ length: count }, (_, i) => `/api/products/${row.id}/image?index=${i}&v=${row.version}`)
+    : []
+
   return {
     id: row.id,
     name: row.name,
     price: row.price,
+    cutPrice: row.cut_price ?? undefined,
+    category: row.category || 'Miscellaneous Products',
     description: row.description,
     isOutOfStock: row.is_out_of_stock,
-    image: row.has_image ? `/api/products/${row.id}/image?v=${row.version}` : undefined,
+    image: images[0],
+    images,
     slug: row.slug ?? undefined,
     updatedAt: row.updated_at.toISOString(),
   }
 }
 
 export async function listProducts(): Promise<Product[]> {
-  const { rows } = await pool.query<ProductRow>(`${SELECT} order by sort_order asc, price asc, created_at asc`)
+  const { rows } = await pool.query<ProductRow>(`${SELECT} order by p.sort_order asc, p.price asc, p.created_at asc`)
   return rows.map(toProduct)
 }
 
 /** Looks a product up by its slug ("honey-500g") or, for old links, its id. */
 export async function findProduct(slugOrId: string): Promise<Product | null> {
   if (!ID_RE.test(slugOrId)) return null
-  const { rows } = await pool.query<ProductRow>(`${SELECT} where slug = $1 or id = $1 order by (slug = $1) desc limit 1`, [
+  const { rows } = await pool.query<ProductRow>(`${SELECT} where p.slug = $1 or p.id = $1 order by (p.slug = $1) desc limit 1`, [
     slugOrId,
   ])
   return rows[0] ? toProduct(rows[0]) : null
 }
 
-export async function findProductImage(id: string) {
+export async function findProductImage(id: string, index = 0) {
   if (!ID_RE.test(id)) return null
+  // 1. First attempt to fetch from product_image table with offset
   const { rows } = await pool.query<{ image: Buffer; image_type: string }>(
-    'select image, image_type from product where id = $1 and image is not null',
-    [id]
+    'select image, image_type from product_image where product_id = $1 order by sort_order asc, id asc offset $2 limit 1',
+    [id, index]
   )
-  return rows[0] ?? null
+  if (rows[0]) return rows[0]
+
+  // 2. Fallback to product.image if index === 0
+  if (index === 0) {
+    const fallback = await pool.query<{ image: Buffer; image_type: string }>(
+      'select image, image_type from product where id = $1 and image is not null',
+      [id]
+    )
+    return fallback.rows[0] ?? null
+  }
+  return null
 }
 
 /** For server-rendered pages: a database hiccup (or a build without DATABASE_URL) shows an empty shelf instead of crashing. */

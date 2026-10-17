@@ -1,12 +1,16 @@
 'use client'
 
-import { Product, productHref } from '@/store/useCartStore'
+import { Product, productHref, calculateDiscount } from '@/store/useCartStore'
 import { cn } from '@/lib/utils'
 import { CartQuantityButton } from './CartQuantityButton'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Images } from 'lucide-react'
 
 export function ProductCard({ product, className }: { product: Product; className?: string }) {
+  const discount = calculateDiscount(product.price, product.cutPrice)
+  const imageCount = product.images && product.images.length > 0 ? product.images.length : product.image ? 1 : 0
+
   return (
     <article className={cn('group flex flex-col', className)}>
       <Link
@@ -28,23 +32,53 @@ export function ProductCard({ product, className }: { product: Product; classNam
         ) : (
           <span className="grid h-full w-full place-items-center text-sm text-muted">No photo yet</span>
         )}
+
+        {/* Attention-Grabbing Discount Badge (Reference Match) */}
+        {discount > 0 && (
+          <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-emerald-600/95 px-2.5 py-1 text-[11px] font-bold tracking-tight text-white shadow-md backdrop-blur-xs ring-1 ring-white/25">
+            <span>{discount}% OFF</span>
+          </div>
+        )}
+
+        {/* Multiple Photos Indicator */}
+        {imageCount > 1 && (
+          <div className="absolute bottom-3 left-3 z-10 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10.5px] font-medium text-white backdrop-blur-md">
+            <Images className="h-3 w-3" />
+            <span>{imageCount} photos</span>
+          </div>
+        )}
+
         {product.isOutOfStock && (
-          <span className="glass absolute left-3 top-3 rounded-full px-3 py-1 text-[11.5px] font-medium">Sold out</span>
+          <span className="glass absolute left-3 top-3 z-10 rounded-full px-3 py-1 text-[11.5px] font-medium text-foreground">Sold out</span>
         )}
       </Link>
 
-      <div className="flex items-start justify-between gap-4 px-1 pt-4">
-        <div className="min-w-0">
+      <div className="flex items-start justify-between gap-4 px-1 pt-3.5">
+        <div className="min-w-0 flex-1">
+          {product.category && (
+            <p className="mb-1 text-[11.5px] font-medium text-primary tracking-tight">
+              {product.category}
+            </p>
+          )}
           <Link href={productHref(product)} prefetch={true}>
-            <h3 className="truncate text-[17px] font-semibold tracking-[-0.02em]">{product.name}</h3>
+            <h3 className="truncate text-[17px] font-semibold tracking-[-0.02em] hover:text-primary transition-colors">{product.name}</h3>
           </Link>
           {product.description && (
             <p className="mt-1 line-clamp-2 text-[14px] leading-[1.45] text-muted">{product.description}</p>
           )}
         </div>
-        <span className="shrink-0 pt-0.5 text-[16px] font-semibold tabular-nums text-primary">₹{product.price}</span>
+
+        {/* Price & Cut Price (MRP) */}
+        <div className="flex shrink-0 flex-col items-end pt-0.5">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[17px] font-bold tabular-nums text-primary">₹{product.price}</span>
+            {product.cutPrice && product.cutPrice > product.price && (
+              <span className="text-[13px] line-through tabular-nums text-muted/80">₹{product.cutPrice}</span>
+            )}
+          </div>
+        </div>
       </div>
-      <div className="px-1 pt-4">
+      <div className="px-1 pt-3.5">
         <CartQuantityButton product={product} />
       </div>
     </article>

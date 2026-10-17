@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useRef } from 'react'
 import { motion, useReducedMotion, useScroll, useSpring, useTransform, MotionValue } from 'motion/react'
 import { ArrowRight } from 'lucide-react'
-import { Product, productHref } from '@/store/useCartStore'
+import { Product, productHref, calculateDiscount } from '@/store/useCartStore'
 import { CartQuantityButton } from '@/components/CartQuantityButton'
 import { HeroGreeting } from '@/components/HeroGreeting'
 import { useCoarsePointer, useViewport } from '@/lib/useViewport'
@@ -178,6 +178,7 @@ function HeroCard({
   reduceMotion: boolean
 }) {
   const k = index - (count - 1) / 2
+  const discount = calculateDiscount(product.price, product.cutPrice)
   const spread = mobile ? 0.62 : Math.min(1.12, 3.2 / Math.max(count, 3))
   // A hand-placed look on the table: each card a little off, none perfectly square
   const scatterList = [
@@ -226,6 +227,13 @@ function HeroCard({
               )}
               {/* Specular edge — the glass-case catch light */}
               <span aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(160deg,rgba(255,255,255,0.28)_0%,transparent_32%,transparent_70%,rgba(0,0,0,0.18)_100%)]" />
+
+              {/* Attention Discount Badge */}
+              {discount > 0 && (
+                <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-emerald-600/95 px-2 py-0.5 text-[10.5px] font-bold text-white shadow-md ring-1 ring-white/20">
+                  <span>{discount}% OFF</span>
+                </div>
+              )}
             </Link>
 
             {/* Solid, interactive card bar in Beat 2 */}
@@ -237,7 +245,17 @@ function HeroCard({
                 <Link href={productHref(product)} className="truncate block text-[13px] font-semibold tracking-[-0.01em] hover:underline sm:text-[14px]">
                   {product.name}
                 </Link>
-                <span className="text-[12px] font-bold text-primary tabular-nums sm:text-[13.5px]">₹{product.price}</span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[12px] font-bold text-primary tabular-nums sm:text-[13.5px]">₹{product.price}</span>
+                  {product.cutPrice && product.cutPrice > product.price && (
+                    <span className="text-[10px] line-through text-muted tabular-nums sm:text-[11px]">₹{product.cutPrice}</span>
+                  )}
+                  {discount > 0 && (
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                      {discount}% OFF
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
                 <CartQuantityButton product={product} />

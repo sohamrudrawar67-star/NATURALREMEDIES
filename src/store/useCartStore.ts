@@ -5,12 +5,21 @@ export interface Product {
   id: string
   name: string
   price: number
+  cutPrice?: number
+  category?: string
   description?: string
   image?: string
+  images?: string[]
   isOutOfStock?: boolean
   /** URL-friendly name, e.g. "honey-500g" */
   slug?: string
   updatedAt?: string
+}
+
+/** Calculates percentage discount between cut price (MRP) and actual price */
+export function calculateDiscount(price: number, cutPrice?: number | null): number {
+  if (!cutPrice || cutPrice <= price) return 0
+  return Math.round(((cutPrice - price) / cutPrice) * 100)
 }
 
 /** Canonical link to a product page (falls back to the id for old cart items). */

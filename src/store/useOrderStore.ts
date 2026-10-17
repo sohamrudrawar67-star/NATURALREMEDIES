@@ -10,11 +10,15 @@ export interface OrderItem {
   slug?: string
 }
 
+export const calculateCourierFee = (subtotal: number) => (subtotal > 500 ? 70 : 0)
+
 export interface Order {
   id: string
   createdAt: string
   items: OrderItem[]
   subtotal: number
+  deliveryFee: number
+  total: number
   totalItems: number
   customerName: string
   customerPhone: string
@@ -36,9 +40,14 @@ export const useOrderStore = create<OrderStore>()(
         // Generate a friendly reference number e.g. NR-742918
         const randomNum = Math.floor(100000 + Math.random() * 900000)
         const id = `NR-${randomNum}`
+        const deliveryFee = typeof data.deliveryFee === 'number' ? data.deliveryFee : calculateCourierFee(data.subtotal)
+        const total = typeof data.total === 'number' ? data.total : data.subtotal + deliveryFee
+
         const newOrder: Order = {
           ...data,
           id,
+          deliveryFee,
+          total,
           createdAt: new Date().toISOString(),
         }
         set((state) => ({

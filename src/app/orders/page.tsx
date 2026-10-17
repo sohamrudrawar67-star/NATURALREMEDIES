@@ -54,10 +54,14 @@ export default function OrdersPage() {
   }
 
   const handleWhatsAppQuery = (order: Order) => {
+    const deliveryFee = typeof order.deliveryFee === 'number' ? order.deliveryFee : (order.subtotal > 500 ? 70 : 0)
+    const total = typeof order.total === 'number' ? order.total : order.subtotal + deliveryFee
     const message = encodeURIComponent(
       `*Query regarding Order #${order.id}*\n\n` +
       `*Customer:* ${order.customerName}\n` +
-      `*Total:* ₹${order.subtotal}\n` +
+      `*Subtotal:* ₹${order.subtotal}\n` +
+      `*Courier Delivery:* ${deliveryFee > 0 ? `₹${deliveryFee}` : 'Free'}\n` +
+      `*Total Amount:* ₹${total}\n` +
       `*Date:* ${formatDate(order.createdAt)}\n\n` +
       `Hi Natural Remedies, I would like to check the status of my order.`
     )
@@ -210,11 +214,23 @@ export default function OrdersPage() {
 
             {/* Footer / Actions */}
             <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-line pt-4">
-              <div className="flex items-baseline gap-2">
-                <span className="text-[14px] text-muted">Order Total:</span>
-                <span className="text-[22px] font-bold tabular-nums text-primary">₹{order.subtotal}</span>
-                <span className="text-[12px] text-muted">({order.totalItems || order.items.reduce((s, i) => s + i.quantity, 0)} items · Free delivery)</span>
-              </div>
+              {(() => {
+                const deliveryFee = typeof order.deliveryFee === 'number' ? order.deliveryFee : (order.subtotal > 500 ? 70 : 0)
+                const total = typeof order.total === 'number' ? order.total : order.subtotal + deliveryFee
+                return (
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-[13.5px] text-muted">Total:</span>
+                      <span className="text-[22px] font-bold tabular-nums text-primary">₹{total}</span>
+                    </div>
+                    <div className="text-[12px] text-muted flex items-center gap-2">
+                      <span>Subtotal: ₹{order.subtotal}</span>
+                      <span>·</span>
+                      <span>{deliveryFee > 0 ? `Courier: ₹${deliveryFee}` : 'Free delivery'}</span>
+                    </div>
+                  </div>
+                )
+              })()}
 
               <div className="flex items-center gap-2.5">
                 <button

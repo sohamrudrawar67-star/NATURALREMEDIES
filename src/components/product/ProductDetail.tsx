@@ -1,13 +1,15 @@
 import { CartQuantityButton } from '@/components/CartQuantityButton'
 import { ProductCard } from '@/components/ProductCard'
 import { Reveal } from '@/components/Reveal'
-import { Product } from '@/store/useCartStore'
-import { ChevronRight, MessageCircle, Truck, ShieldCheck } from 'lucide-react'
+import { Product, calculateDiscount } from '@/store/useCartStore'
+import { ChevronRight, MessageCircle, Truck, ShieldCheck, Tag } from 'lucide-react'
 import Link from 'next/link'
 import { TiltImage } from './TiltImage'
 
-/** Product page. A server component: only the photo tilt and the basket button hydrate. */
+/** Product page. A server component: only the photo tilt/gallery and the basket button hydrate. */
 export function ProductDetail({ product, others }: { product: Product; others: Product[] }) {
+  const discount = calculateDiscount(product.price, product.cutPrice)
+
   return (
     <div className="mx-auto max-w-[1200px] px-6 pb-24 pt-28 md:pt-32">
       <nav aria-label="Breadcrumb" className="enter">
@@ -28,7 +30,7 @@ export function ProductDetail({ product, others }: { product: Product; others: P
           <li aria-hidden>
             <ChevronRight className="h-3.5 w-3.5 text-subtle" />
           </li>
-          <li aria-current="page" className="truncate text-foreground">
+          <li aria-current="page" className="truncate text-foreground font-medium">
             {product.name}
           </li>
         </ol>
@@ -37,21 +39,49 @@ export function ProductDetail({ product, others }: { product: Product; others: P
       <div className="mt-4 grid items-start gap-10 md:grid-cols-[1.1fr_1fr] md:gap-16">
         <TiltImage product={product} />
 
-        <div className="enter flex flex-col md:sticky md:top-28 md:pt-6" style={{ animationDelay: '120ms' }}>
-          {product.isOutOfStock ? (
-            <span className="w-fit rounded-full bg-surface-2 px-3 py-1 text-[12.5px] font-medium text-muted">Sold out for now</span>
-          ) : (
-            <span className="flex w-fit items-center gap-2 rounded-full bg-tint px-3 py-1 text-[13px] font-medium text-primary border border-primary/20 shadow-xs">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" /> In stock · 100% Pure & Homegrown
+        <div className="enter flex flex-col md:sticky md:top-28 md:pt-4" style={{ animationDelay: '120ms' }}>
+          {/* Category & Stock Status Badges */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="flex items-center gap-1 rounded-full bg-tint px-3 py-1 text-[12px] font-semibold text-primary border border-primary/20 shadow-2xs">
+              <Tag className="h-3 w-3" />
+              {product.category || 'Miscellaneous Products'}
             </span>
-          )}
-          <h1 className="mt-4 text-balance text-[clamp(36px,4.6vw,60px)] font-semibold leading-[1] tracking-[-0.045em]">
+            {product.isOutOfStock ? (
+              <span className="rounded-full bg-surface-2 px-3 py-1 text-[12px] font-medium text-muted">
+                Sold out for now
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-[12px] font-medium text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> In stock · 100% Homegrown
+              </span>
+            )}
+          </div>
+
+          <h1 className="mt-3.5 text-balance text-[clamp(34px,4.5vw,56px)] font-semibold leading-[1.02] tracking-[-0.045em]">
             {product.name}
           </h1>
-          <p className="mt-4 text-[26px] font-bold tabular-nums tracking-[-0.02em] text-primary">₹{product.price}</p>
+
+          {/* Pricing & Cut Price & Discount Badge (Reference Image Match) */}
+          <div className="mt-4 flex flex-wrap items-baseline gap-3">
+            <span className="text-[32px] sm:text-[38px] font-bold tabular-nums tracking-[-0.03em] text-primary">
+              ₹{product.price}
+            </span>
+            {product.cutPrice && product.cutPrice > product.price && (
+              <span className="text-[20px] sm:text-[22px] line-through tabular-nums text-muted font-normal">
+                ₹{product.cutPrice}
+              </span>
+            )}
+            {discount > 0 && (
+              <span className="rounded-full bg-emerald-600 px-3 py-1 text-[13px] font-bold text-white shadow-xs tracking-tight">
+                {discount}% OFF
+              </span>
+            )}
+          </div>
 
           {product.description && (
-            <p className="mt-6 max-w-[46ch] text-pretty text-[17px] leading-[1.6] text-muted">{product.description}</p>
+            <p className="mt-5 max-w-[46ch] text-pretty text-[16.5px] leading-[1.65] text-muted whitespace-pre-line">
+              {product.description}
+            </p>
           )}
 
           <div className="mt-8">
@@ -60,13 +90,13 @@ export function ProductDetail({ product, others }: { product: Product; others: P
 
           <ul className="mt-10 divide-y divide-line border-y border-line">
             <Fact icon={<MessageCircle className="h-[18px] w-[18px]" strokeWidth={1.6} />} title="Ordered over WhatsApp">
-              Checkout opens a chat with your order written out.
+              Checkout prepares a direct message with order items and your address.
             </Fact>
-            <Fact icon={<Truck className="h-[18px] w-[18px]" strokeWidth={1.6} />} title="Free delivery">
-              No delivery charge added at checkout.
+            <Fact icon={<Truck className="h-[18px] w-[18px]" strokeWidth={1.6} />} title="Courier Delivery Information">
+              Free delivery on orders up to ₹500. Orders above ₹500 include a nominal ₹70 courier charge.
             </Fact>
             <Fact icon={<ShieldCheck className="h-[18px] w-[18px]" strokeWidth={1.6} />} title="No account needed">
-              Just your name, number and address.
+              Just your name, number and delivery address saved locally on your phone.
             </Fact>
           </ul>
         </div>

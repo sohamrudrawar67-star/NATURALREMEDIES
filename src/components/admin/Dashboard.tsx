@@ -20,6 +20,9 @@ import {
   type AdminAccount,
 } from '@/app/admin/actions'
 
+import { PRODUCT_CATEGORIES, DEFAULT_CATEGORY } from '@/lib/categories'
+import { calculateDiscount } from '@/store/useCartStore'
+
 const ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif'
 
 export function Dashboard({ me }: { me: AdminUser }) {
@@ -32,11 +35,14 @@ export function Dashboard({ me }: { me: AdminUser }) {
   // Product form
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
+  const [cutPrice, setCutPrice] = useState('')
+  const [category, setCategory] = useState<string>(DEFAULT_CATEGORY)
   const [description, setDescription] = useState('')
   const [isOutOfStock, setIsOutOfStock] = useState(false)
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [existingImage, setExistingImage] = useState<string | null>(null)
+  const [newImageFiles, setNewImageFiles] = useState<File[]>([])
+  const [existingImages, setExistingImages] = useState<string[]>([])
+  const [keptImageIndices, setKeptImageIndices] = useState<number[]>([])
   const [savingProduct, setSavingProduct] = useState(false)
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
@@ -50,13 +56,16 @@ export function Dashboard({ me }: { me: AdminUser }) {
   const [nextPw, setNextPw] = useState('')
   const [changingPw, setChangingPw] = useState(false)
 
-  const previewUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : existingImage), [imageFile, existingImage])
-  useEffect(
-    () => () => {
-      if (imageFile && previewUrl) URL.revokeObjectURL(previewUrl)
-    },
-    [imageFile, previewUrl]
+  // Object URLs for new image previews
+  const newImagePreviews = useMemo(
+    () => newImageFiles.map((file) => ({ file, url: URL.createObjectURL(file) })),
+    [newImageFiles]
   )
+  useEffect(() => {
+    return () => {
+      newImagePreviews.forEach((p) => URL.revokeObjectURL(p.url))
+    }
+  }, [newImagePreviews])
 
   const loadProducts = useCallback(async () => setProducts(await getProducts({ fresh: true })), [])
   const loadAdmins = useCallback(async () => {
@@ -88,11 +97,14 @@ export function Dashboard({ me }: { me: AdminUser }) {
     setEditingProductId(null)
     setName('')
     setPrice('')
+    setCutPrice('')
+    setCategory(DEFAULT_CATEGORY)
     setDescription('')
     setIsOutOfStock(false)
     setEditingSlug(null)
-    setImageFile(null)
-    setExistingImage(null)
+    setNewImageFiles([])
+    setExistingImages([])
+    setKeptImageIndices([])
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -100,11 +112,16 @@ export function Dashboard({ me }: { me: AdminUser }) {
     setEditingProductId(product.id)
     setName(product.name)
     setPrice(String(product.price))
+    setCutPrice(product.cutPrice ? String(product.cutPrice) : '')
+    setCategory(product.category || DEFAULT_CATEGORY)
     setDescription(product.description || '')
     setIsOutOfStock(Boolean(product.isOutOfStock))
     setEditingSlug(product.slug || null)
-    setExistingImage(product.image || null)
-    setImageFile(null)
+
+    const imgs = product.images && product.images.length > 0 ? product.images : product.image ? [product.image] : []
+    setExistingImages(imgs)
+    setKeptImageIndices(imgs.map((_, i) => i))
+    setNewImageFiles([])
     if (fileInputRef.current) fileInputRef.current.value = ''
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -112,15 +129,29 @@ export function Dashboard({ me }: { me: AdminUser }) {
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim() || !price) return toast.error('Add a name and a price.')
-    if (!editingProductId && !imageFile) return toast.error('Add a photo.')
+
+    const totalImagesCount = keptImageIndices.length + newImageFiles.length
+    if (totalImagesCount === 0) return toast.error('Please add at least one product photo.')
+
+    if (cutPrice && Number(cutPrice) <= Number(price)) {
+      return toast.error('Cut/original price must be higher than actual selling price.')
+    }
 
     const form = new FormData()
-    if (editingProductId) form.set('id', editingProductId)
+    if (editingProductId) {
+      form.set('id', editingProductId)
+      form.set('keptImages', JSON.stringify(keptImageIndices))
+    }
     form.set('name', name)
     form.set('price', price)
+    if (cutPrice) form.set('cutPrice', cutPrice)
+    form.set('category', category)
     form.set('description', description)
     form.set('isOutOfStock', String(isOutOfStock))
-    if (imageFile) form.set('image', imageFile)
+
+    newImageFiles.forEach((file) => {
+      form.append('images', file)
+    })
 
     setSavingProduct(true)
     const res = await saveProduct(form).catch(() => ({ ok: false as const, error: 'Upload failed. Check your connection.' }))
@@ -261,58 +292,109 @@ export function Dashboard({ me }: { me: AdminUser }) {
             )}
           </div>
 
-          <form onSubmit={handleSaveProduct} className="mt-5 grid gap-6 sm:grid-cols-[190px_1fr]">
-            {/* PHOTO UPLOAD */}
-            <div className="flex flex-col gap-2">
-              <span className="text-[12.5px] font-semibold text-foreground/85">
-                Product photo {!editingProductId && <span className="text-red-500">*</span>}
-              </span>
-              <label className="group relative mx-auto flex aspect-square w-full max-w-[220px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[22px] border border-dashed border-line-strong bg-surface-2 text-center transition-colors hover:border-primary sm:max-w-none">
-                {previewUrl ? (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- local blob: preview, nothing to optimize */}
-                    <img src={previewUrl} alt="Preview" className="absolute inset-0 h-full w-full object-cover" />
-                    <span className="absolute inset-0 grid place-items-center bg-black/55 text-[12.5px] font-medium text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                      Change photo
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <ImagePlus className="h-7 w-7 text-muted" strokeWidth={1.5} />
-                    <span className="mt-2 px-3 text-[12.5px] font-medium text-muted">Click to upload photo</span>
-                  </>
-                )}
+          <form onSubmit={handleSaveProduct} className="mt-5 grid gap-6 sm:grid-cols-[220px_1fr]">
+            {/* MULTI-PHOTO UPLOAD & GALLERY */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[12.5px] font-semibold text-foreground/85">
+                  Photos <span className="text-red-500">*</span>
+                </span>
+                <span className="text-[11.5px] text-muted">
+                  {keptImageIndices.length + newImageFiles.length} photo{keptImageIndices.length + newImageFiles.length === 1 ? '' : 's'}
+                </span>
+              </div>
+
+              {/* Main / Add Box */}
+              <label className="group relative flex aspect-square w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[22px] border border-dashed border-line-strong bg-surface-2 text-center transition-colors hover:border-primary">
+                <ImagePlus className="h-8 w-8 text-primary/70 transition-transform group-hover:scale-110" strokeWidth={1.5} />
+                <span className="mt-2 px-3 text-[12.5px] font-medium text-foreground">
+                  {keptImageIndices.length + newImageFiles.length > 0 ? '+ Add more photos' : 'Upload photos'}
+                </span>
+                <span className="mt-0.5 text-[11px] text-muted">Single or multiple (JPG, PNG, WebP)</span>
                 <input
                   type="file"
+                  multiple
                   accept={ACCEPT}
                   ref={fileInputRef}
                   onChange={(e) => {
-                    const file = e.target.files?.[0] || null
-                    if (file && file.size > 8 * 1024 * 1024) {
-                      toast.error('That photo is over 8MB. Please pick a smaller one.')
-                      e.target.value = ''
-                      return
+                    const files = Array.from(e.target.files || [])
+                    const validFiles = files.filter((f) => f.size <= 8 * 1024 * 1024)
+                    if (validFiles.length < files.length) {
+                      toast.error('Some photos were over 8MB and were skipped.')
                     }
-                    setImageFile(file)
+                    if (validFiles.length > 0) {
+                      setNewImageFiles((prev) => [...prev, ...validFiles])
+                    }
+                    e.target.value = ''
                   }}
                   className="sr-only"
                 />
-                {imageFile && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setImageFile(null)
-                      if (fileInputRef.current) fileInputRef.current.value = ''
-                    }}
-                    className="press absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-white hover:bg-black"
-                    aria-label="Remove uploaded image"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
               </label>
-              <p className="text-center text-[11px] text-muted">JPG, PNG, WebP · Max 8MB</p>
+
+              {/* Photo Thumbnails Preview */}
+              {(existingImages.length > 0 || newImagePreviews.length > 0) && (
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-medium text-muted">Photos order (first is cover):</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {/* Existing photos kept */}
+                    {existingImages.map((src, idx) => {
+                      const isKept = keptImageIndices.includes(idx)
+                      if (!isKept) return null
+                      const isFirst = keptImageIndices[0] === idx && newImagePreviews.length === 0
+                      return (
+                        <div key={`existing-${idx}`} className="relative aspect-square overflow-hidden rounded-xl border border-line bg-surface-2 group">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={src} alt="" className="h-full w-full object-cover" />
+                          {isFirst && (
+                            <span className="absolute left-1 top-1 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9.5px] font-bold text-white shadow-xs">
+                              Cover
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setKeptImageIndices((prev) => prev.filter((i) => i !== idx))}
+                            className="press absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/75 text-white hover:bg-black"
+                            title="Remove photo"
+                            aria-label="Remove photo"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )
+                    })}
+
+                    {/* New uploaded photos */}
+                    {newImagePreviews.map((p, idx) => {
+                      const isFirst = keptImageIndices.length === 0 && idx === 0
+                      return (
+                        <div key={`new-${idx}`} className="relative aspect-square overflow-hidden rounded-xl border border-primary/30 bg-surface-2 ring-1 ring-primary/20">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={p.url} alt="" className="h-full w-full object-cover" />
+                          {isFirst ? (
+                            <span className="absolute left-1 top-1 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9.5px] font-bold text-white shadow-xs">
+                              Cover
+                            </span>
+                          ) : (
+                            <span className="absolute left-1 top-1 rounded-md bg-emerald-600/90 px-1.5 py-0.5 text-[9.5px] font-bold text-white shadow-xs">
+                              New
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setNewImageFiles((prev) => prev.filter((_, i) => i !== idx))}
+                            className="press absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/75 text-white hover:bg-black"
+                            title="Remove photo"
+                            aria-label="Remove photo"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               {editingSlug && (
                 <div className="rounded-xl bg-surface-2 p-2 text-center text-[11px] text-muted">
                   <span className="truncate block font-mono text-[10.5px] text-foreground/75">/{editingSlug}</span>
@@ -341,35 +423,94 @@ export function Dashboard({ me }: { me: AdminUser }) {
                 />
               </div>
 
-              {/* PRICE (₹ INR) */}
+              {/* CATEGORY SELECTOR */}
               <div>
-                <label htmlFor="product-price" className="mb-1.5 flex items-center justify-between text-[12.5px] font-semibold text-foreground/85">
-                  <span>Price (₹ INR) <span className="text-red-500">*</span></span>
-                  <span className="text-[11.5px] font-normal text-muted">Indian Rupees</span>
+                <label htmlFor="product-category" className="mb-1.5 block text-[12.5px] font-semibold text-foreground/85">
+                  Category <span className="text-red-500">*</span>
                 </label>
-                <div className="relative flex items-center">
-                  <span className="pointer-events-none absolute left-3.5 text-[16px] font-bold text-primary">₹</span>
-                  <input
-                    id="product-price"
-                    type="number"
-                    required
-                    min={1}
-                    step={1}
-                    inputMode="numeric"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="Enter price in ₹ (e.g. 75)"
-                    aria-label="Product price in Rupees"
-                    className="field pl-9 text-[15px] font-semibold tabular-nums"
-                  />
-                  {price && Number(price) > 0 ? (
-                    <span className="pointer-events-none absolute right-3 rounded-md bg-surface px-2 py-0.5 text-[12px] font-medium text-muted">
-                      ₹{Number(price).toLocaleString('en-IN')}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 text-[11.5px] text-muted">Customer checkout and catalog display price in Rupees.</p>
+                <select
+                  id="product-category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="field cursor-pointer font-medium"
+                >
+                  {PRODUCT_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11.5px] text-muted">
+                  Segments this product under the matching category filter tab in The Shop.
+                </p>
               </div>
+
+              {/* PRICING (ACTUAL + CUT PRICE + DISCOUNT CALCULATION) */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {/* ACTUAL SELLING PRICE */}
+                <div>
+                  <label htmlFor="product-price" className="mb-1.5 flex items-center justify-between text-[12.5px] font-semibold text-foreground/85">
+                    <span>Actual Price (₹) <span className="text-red-500">*</span></span>
+                    <span className="text-[11px] font-normal text-primary font-medium">Selling price</span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <span className="pointer-events-none absolute left-3.5 text-[16px] font-bold text-primary">₹</span>
+                    <input
+                      id="product-price"
+                      type="number"
+                      required
+                      min={1}
+                      step={1}
+                      inputMode="numeric"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="e.g. 50"
+                      aria-label="Product selling price in Rupees"
+                      className="field pl-9 text-[15px] font-semibold tabular-nums"
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted">Charged to customer at checkout.</p>
+                </div>
+
+                {/* CUT / ORIGINAL PRICE (MRP) */}
+                <div>
+                  <label htmlFor="product-cut-price" className="mb-1.5 flex items-center justify-between text-[12.5px] font-semibold text-foreground/85">
+                    <span>Cut Price / MRP (₹)</span>
+                    <span className="text-[11px] font-normal text-muted">Strikethrough</span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <span className="pointer-events-none absolute left-3.5 text-[16px] font-bold text-muted">₹</span>
+                    <input
+                      id="product-cut-price"
+                      type="number"
+                      min={1}
+                      step={1}
+                      inputMode="numeric"
+                      value={cutPrice}
+                      onChange={(e) => setCutPrice(e.target.value)}
+                      placeholder="e.g. 100"
+                      aria-label="Product cut price in Rupees"
+                      className="field pl-9 text-[15px] font-semibold tabular-nums"
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted">Original price shown with strikethrough.</p>
+                </div>
+              </div>
+
+              {/* LIVE DISCOUNT CALLOUT */}
+              {Number(price) > 0 && Number(cutPrice) > Number(price) && (
+                <div className="flex items-center justify-between rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3.5 py-2.5 text-[12.5px] text-emerald-700 dark:text-emerald-300">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[11.5px] font-bold text-white shadow-xs">
+                      {calculateDiscount(Number(price), Number(cutPrice))}% OFF
+                    </span>
+                    <span className="font-medium">
+                      Customer saves ₹{Number(cutPrice) - Number(price)}
+                    </span>
+                  </div>
+                  <span className="text-[11.5px] opacity-80 font-medium">Eye-catching badge active</span>
+                </div>
+              )}
 
               {/* STOCK AVAILABILITY */}
               <div>
@@ -503,74 +644,96 @@ export function Dashboard({ me }: { me: AdminUser }) {
       <section className="mt-14 sm:mt-16">
         <h2 className="text-[24px] font-semibold tracking-[-0.03em]">On the shelf</h2>
         <ul className="mt-6 divide-y divide-line border-y border-line">
-          {products.map((product) => (
-            <li key={product.id} className="flex items-center gap-3 py-4 sm:gap-4">
-              {product.image ? (
-                <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl sm:h-16 sm:w-16">
-                  <Image src={product.image} alt="" fill sizes="64px" className="object-cover" />
-                </span>
-              ) : (
-                <span className="h-14 w-14 shrink-0 rounded-2xl bg-surface-2 sm:h-16 sm:w-16" />
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[15.5px] font-semibold tracking-[-0.015em]">{product.name}</div>
-                <div className="mt-0.5 flex items-center gap-2 text-[13.5px] text-muted">
-                  <span className="tabular-nums">₹{product.price}</span>
-                  <span className="text-line-strong">·</span>
+          {products.map((product) => {
+            const discount = calculateDiscount(product.price, product.cutPrice)
+            const photoCount = product.images && product.images.length > 0 ? product.images.length : product.image ? 1 : 0
+            return (
+              <li key={product.id} className="flex items-center gap-3 py-4 sm:gap-4">
+                {product.image ? (
+                  <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl sm:h-16 sm:w-16">
+                    <Image src={product.image} alt="" fill sizes="64px" className="object-cover" />
+                    {photoCount > 1 && (
+                      <span className="absolute bottom-1 right-1 rounded-md bg-black/75 px-1 py-0.5 text-[9px] font-semibold text-white">
+                        {photoCount}
+                      </span>
+                    )}
+                  </span>
+                ) : (
+                  <span className="h-14 w-14 shrink-0 rounded-2xl bg-surface-2 sm:h-16 sm:w-16" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="truncate text-[15.5px] font-semibold tracking-[-0.015em]">{product.name}</span>
+                    <span className="rounded-full bg-tint px-2 py-0.5 text-[11px] font-medium text-primary border border-primary/20">
+                      {product.category || DEFAULT_CATEGORY}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[13.5px] text-muted">
+                    <span className="font-semibold text-foreground tabular-nums">₹{product.price}</span>
+                    {product.cutPrice && product.cutPrice > product.price && (
+                      <span className="line-through text-muted text-[12px] tabular-nums">₹{product.cutPrice}</span>
+                    )}
+                    {discount > 0 && (
+                      <span className="rounded-full bg-emerald-500/15 px-2 py-0.2 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                        {discount}% OFF
+                      </span>
+                    )}
+                    <span className="text-line-strong">·</span>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleStock(product)}
+                      title={product.isOutOfStock ? 'Click to mark in stock' : 'Click to mark sold out'}
+                      className={`press inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px] font-medium transition-colors ${
+                        product.isOutOfStock
+                          ? 'bg-danger/10 text-danger hover:bg-danger/20 ring-1 ring-danger/25'
+                          : 'bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/25'
+                      }`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${product.isOutOfStock ? 'bg-danger' : 'bg-primary animate-pulse'}`} />
+                      {product.isOutOfStock ? 'Sold out' : 'In stock'}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                  <AdminAction label="Edit" onClick={() => startEdit(product)}>
+                    <Edit2 className="h-4 w-4" strokeWidth={1.75} />
+                  </AdminAction>
                   <button
                     type="button"
                     onClick={() => handleToggleStock(product)}
-                    title={product.isOutOfStock ? 'Click to mark in stock' : 'Click to mark sold out'}
-                    className={`press inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px] font-medium transition-colors ${
+                    title={product.isOutOfStock ? 'Currently Sold out. Click to mark In stock' : 'Currently In stock. Click to mark Sold out'}
+                    aria-label={product.isOutOfStock ? 'Mark in stock' : 'Mark sold out'}
+                    className={`press flex items-center gap-1.5 h-9 px-3 rounded-full border text-[12px] font-medium transition-all ${
                       product.isOutOfStock
-                        ? 'bg-danger/10 text-danger hover:bg-danger/20 ring-1 ring-danger/25'
-                        : 'bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/25'
+                        ? 'border-danger/30 bg-danger/10 text-danger hover:bg-danger/20'
+                        : 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/20'
                     }`}
                   >
-                    <span className={`h-1.5 w-1.5 rounded-full ${product.isOutOfStock ? 'bg-danger' : 'bg-primary animate-pulse'}`} />
-                    {product.isOutOfStock ? 'Sold out' : 'In stock'}
+                    {product.isOutOfStock ? (
+                      <>
+                        <ToggleLeft className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+                        <span className="hidden sm:inline">Sold out</span>
+                      </>
+                    ) : (
+                      <>
+                        <ToggleRight className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+                        <span className="hidden sm:inline">In stock</span>
+                      </>
+                    )}
                   </button>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                <AdminAction label="Edit" onClick={() => startEdit(product)}>
-                  <Edit2 className="h-4 w-4" strokeWidth={1.75} />
-                </AdminAction>
-                <button
-                  type="button"
-                  onClick={() => handleToggleStock(product)}
-                  title={product.isOutOfStock ? 'Currently Sold out. Click to mark In stock' : 'Currently In stock. Click to mark Sold out'}
-                  aria-label={product.isOutOfStock ? 'Mark in stock' : 'Mark sold out'}
-                  className={`press flex items-center gap-1.5 h-9 px-3 rounded-full border text-[12px] font-medium transition-all ${
-                    product.isOutOfStock
-                      ? 'border-danger/30 bg-danger/10 text-danger hover:bg-danger/20'
-                      : 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/20'
-                  }`}
-                >
-                  {product.isOutOfStock ? (
-                    <>
-                      <ToggleLeft className="h-4 w-4 shrink-0" strokeWidth={2.25} />
-                      <span className="hidden sm:inline">Sold out</span>
-                    </>
+                  {confirmDelete === product.id ? (
+                    <button onClick={() => handleRemoveProduct(product.id)} className="press h-9 rounded-full bg-danger px-3 text-[13px] font-medium text-white">
+                      Delete?
+                    </button>
                   ) : (
-                    <>
-                      <ToggleRight className="h-4 w-4 shrink-0" strokeWidth={2.25} />
-                      <span className="hidden sm:inline">In stock</span>
-                    </>
+                    <AdminAction label="Remove" danger onClick={() => handleRemoveProduct(product.id)}>
+                      <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                    </AdminAction>
                   )}
-                </button>
-                {confirmDelete === product.id ? (
-                  <button onClick={() => handleRemoveProduct(product.id)} className="press h-9 rounded-full bg-danger px-3 text-[13px] font-medium text-white">
-                    Delete?
-                  </button>
-                ) : (
-                  <AdminAction label="Remove" danger onClick={() => handleRemoveProduct(product.id)}>
-                    <Trash2 className="h-4 w-4" strokeWidth={1.75} />
-                  </AdminAction>
-                )}
-              </div>
-            </li>
-          ))}
+                </div>
+              </li>
+            )
+          })}
         </ul>
         {loaded && products.length === 0 && <p className="mt-6 text-muted">Nothing listed yet. Add your first product above.</p>}
       </section>

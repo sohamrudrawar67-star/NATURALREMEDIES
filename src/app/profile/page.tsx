@@ -122,7 +122,9 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-[15px] font-semibold text-primary tabular-nums">₹{o.subtotal}</div>
+                  <div className="text-[15px] font-semibold text-primary tabular-nums">
+                    ₹{o.total ?? (o.subtotal + (o.deliveryFee ?? (o.subtotal > 500 ? 70 : 0)))}
+                  </div>
                   <div className="text-[11px] text-muted">{new Date(o.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
                 </div>
               </Link>

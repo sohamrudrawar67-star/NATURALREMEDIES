@@ -2,10 +2,12 @@ import { findProductImage } from '@/lib/catalog'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const { searchParams } = new URL(request.url)
+  const index = Math.max(0, parseInt(searchParams.get('index') || '0', 10) || 0)
   try {
-    const row = await findProductImage(id)
+    const row = await findProductImage(id, index)
     if (!row) return new Response('Not found', { status: 404 })
     return new Response(new Uint8Array(row.image), {
       headers: {

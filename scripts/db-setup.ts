@@ -34,6 +34,29 @@ create index if not exists customer_created_at_idx on customer (created_at desc)
 -- Readable, stable URLs: /products/honey-500g
 alter table product add column if not exists slug text;
 create unique index if not exists product_slug_idx on product (slug);
+
+-- Category and Cut/MRP price
+alter table product add column if not exists category text default 'Miscellaneous Products';
+alter table product add column if not exists cut_price integer;
+
+-- Multiple images per product
+create table if not exists product_image (
+  id              serial primary key,
+  product_id      text not null references product(id) on delete cascade,
+  image           bytea not null,
+  image_type      text not null default 'image/jpeg',
+  sort_order      integer not null default 0,
+  created_at      timestamptz not null default now(),
+  check (octet_length(image) <= 8000000)
+);
+create index if not exists product_image_product_id_idx on product_image (product_id, sort_order asc);
+
+-- Backfill existing single images into product_image if not already present
+insert into product_image (product_id, image, image_type, sort_order)
+select id, image, coalesce(image_type, 'image/jpeg'), 0
+from product
+where image is not null
+and not exists (select 1 from product_image pi where pi.product_id = product.id);
 `
 
 async function main() {
